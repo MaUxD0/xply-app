@@ -7,7 +7,6 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#131230] to-[#702A4C]">
       {/* Contenedor del formulario con efecto translúcido y bordes redondeados */}
       <div className="bg-white/5 backdrop-blur-md p-10 rounded-3xl w-[90%] max-w-sm text-center shadow-lg border border-white/10">
-{/* Avatar perfecto */}
 <div className="flex justify-center mb-6">
   <div className="relative w-24 h-24 rounded-full bg-[#1B1E54] overflow-hidden flex items-center justify-center">
     {/* Cabeza */}
@@ -20,13 +19,10 @@ export default function Login() {
 
 
 
-        {/* Título principal */}
-        <h1
-  className="text-3xl text-white mb-8 tracking-widest"
-  style={{ fontFamily: "var(--font-title)" }}
->
-  LOGIN
-</h1>
+        {/* Título */}
+        <h2 className="text-white font-['Anurati'] text-xl mb-6 tracking-widest">
+          LOGIN
+        </h2>
 
         {/* Campo de correo electrónico */}
         <div className="text-left mb-4">
@@ -65,12 +61,13 @@ export default function Login() {
           LOGIN
         </button>
 
-        {/* Botón de Register con fondo oscuro */}
-        <button
-          className="w-full py-2 rounded-full text-white font-semibold bg-[#2d2a4a] hover:bg-[#3b3768] transition"
-        >
-          REGISTER
-        </button>
+      <button
+  onClick={() => (window.location.href = "/register")}
+  className="w-full py-2 rounded-full text-white font-semibold bg-[#2B1A40] hover:opacity-80 transition"
+>
+  REGISTER
+</button>
+
       </div>
     </div>
   );
