@@ -1,4 +1,9 @@
-
+// Función para manejar el login 
+  const handleLogin = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevenir comportamiento por defecto
+    // Redirigir al feed después del login
+    window.location.href = "/feed";
+  };
 // Este componente representa la pantalla de Login de XPLY.
 // Se enfoca en el diseño y estructura visual.
 export default function Login() {
@@ -56,6 +61,7 @@ export default function Login() {
 
         {/* Botón de Login con gradiente */}
         <button
+        onClick={handleLogin} // ← ESTA ES LA LÍNEA IMPORTANTE
           className="w-full py-2 rounded-full text-white font-semibold bg-gradient-to-r from-[#090619] to-[#702A4C] hover:opacity-90 transition mb-3"
         >
           LOGIN
