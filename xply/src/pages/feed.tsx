@@ -1,4 +1,6 @@
 import { useState } from "react";
+import PopularGames from "../components/PopularGames";
+
 
 const postsData = [
   {
@@ -46,29 +48,10 @@ export default function Feed() {
         </h1>
 
         {/* POPULAR GAMES */}
-        <h2 className="text-lg font-semibold mb-3">POPULAR GAMES</h2>
-        <div className="flex space-x-4 overflow-x-auto pb-4">
-          <img
-            src="https:"
-            alt="Silksong"
-            className="w-40 h-56 object-cover rounded-xl shadow-md"
-          />
-          <img
-            src="https:"
-            alt="Fortnite"
-            className="w-40 h-56 object-cover rounded-xl shadow-md"
-          />
-          <img
-            src="https:"
-            alt="Red Dead"
-            className="w-40 h-56 object-cover rounded-xl shadow-md"
-          />
-          <img
-            src="https:"
-            alt="Minecraft"
-            className="w-40 h-56 object-cover rounded-xl shadow-md"
-          />
-        </div>
+        <section className="mt-4 mb-8">
+  <PopularGames />
+</section>
+          
       </header>
 
       {/* POSTS */}
