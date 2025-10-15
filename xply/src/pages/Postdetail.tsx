@@ -1,130 +1,174 @@
-// pages/PostDetail.tsx
-import { useState } from 'react';
+import { useEffect, useState } from "react";
+
+
 
 export default function PostDetail() {
-  const [comment, setComment] = useState('');
-  const [isLiked, setIsLiked] = useState(false);
-  const [likes, setLikes] = useState(1400);
+  // scroll actual del window (lo usamos para mover la caja)
+  const [scrollY, setScrollY] = useState(0);
+  // distancia en px que la caja estará inicialmente fuera de la vista (oculta)
+  const [hiddenStart, setHiddenStart] = useState(0);
 
+  useEffect(() => {
+    // calculamos cuánto tiene que "bajar" la caja inicialmente,
+    // lo hacemos relativo al alto de la ventana para que sea consistente en móviles/desktop
+    const computeHidden = () => {
+      setHiddenStart(Math.round(window.innerHeight * 0.65)); // 65% de la ventana
+    };
+    computeHidden();
+    window.addEventListener("resize", computeHidden);
+
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll);
+
+    return () => {
+      window.removeEventListener("resize", computeHidden);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  // calculamos la translateY que aplicamos a la caja:
+  // empieza en hiddenStart (total fuera) y al hacer scroll baja hasta 0 (visible)
+  const translateY = Math.max(hiddenStart - scrollY, 0);
+
+  // datos de ejemplo
   const comments = [
     {
-      id: 1,
-      username: "@JeanetteGottlieb",
-      time: "1 hours ago",
-      text: "This sunflower is so vibrant! The colors just pop. It makes me feel so cheerful!"
+      user: "@JeanetteGottlieb",
+      time: "1 hour ago",
+      text: "This play was amazing! The soundtrack and atmosphere are perfect.",
+      avatar: "https://randomuser.me/api/portraits/women/1.jpg",
     },
     {
-      id: 2,
-      username: "@FernandoPidrillo",
+      user: "@FernandoPidrilio",
       time: "2 hours ago",
-      text: "I love how the light hits it! It really brings out the texture of the petals. Such a warm feeling."
+      text: "That boss fight was insane, love the new mechanics!",
+      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
     },
     {
-      id: 3,
-      username: "@AngelaMayer",
+      user: "@AngelaMayer",
       time: "3 hours ago",
-      text: "Definitely gives off those Van Gogh vibes! It's like a little piece of art in nature."
-    }
+      text: "Graphics are gorgeous. I want more DLC already.",
+      avatar: "https://randomuser.me/api/portraits/women/3.jpg",
+    },
   ];
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikes(isLiked ? likes - 1 : likes + 1);
-  };
-
-  const handleCommentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (comment.trim()) {
-      // Aquí iría la lógica para agregar el comentario
-      console.log('Nuevo comentario:', comment);
-      setComment('');
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#131230] to-[#702A4C] text-white pb-20">
-      {/* Header con botón de volver */}
-      <header className="p-4 border-b border-white/10 flex items-center">
-        <button 
+    <div className="min-h-screen bg-[#0B0821] text-white relative">
+      {/* IMAGEN PRINCIPAL */}
+      <div className="relative w-full h-screen overflow-hidden">
+        <img
+          src="https://pbs.twimg.com/media/G0ZMO8RbgAUt2Jz.jpg:large"
+          alt="Post"
+          className="w-full h-full object-cover"
+        />
+
+        {/* overlay suave para asegurar legibilidad del título */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0821]/95 via-transparent to-transparent" />
+
+        {/* botón back (simple) */}
+        <button
           onClick={() => window.history.back()}
-          className="text-2xl mr-4"
+          className="absolute left-4 top-6 z-20 text-white text-2xl"
+          aria-label="back"
         >
           ←
         </button>
-        <h1 className="text-xl font-bold">Publication</h1>
-      </header>
 
-      {/* Contenido de la publicación */}
-      <div className="p-4">
-        {/* Título */}
-        <h1 className="text-2xl font-bold mb-4">
-          HOLLOW KNIGHT: SILKSONG SHATTERS RECORDS WITH AN ESTIMATED 5 MILLION PLAYERS IN ITS FIRST 3 DAYS
-        </h1>
-
-        {/* Estadísticas */}
-        <div className="flex space-x-6 text-gray-400 text-sm mb-6">
-          <span>24 COMMENTS</span>
-          <span>{likes.toLocaleString()} LIKES</span>
-        </div>
-
-        {/* Imagen de la publicación */}
-        <div className="bg-gray-800 h-80 rounded-lg mb-6 overflow-hidden">
-          <img 
-            src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400" 
-            alt="Game content"
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        {/* Acciones */}
-        <div className="flex items-center space-x-6 mb-6">
-          <button 
-            onClick={handleLike}
-            className="flex items-center space-x-2"
+        {/* TITULO sobre la imagen (solo título, sin descripción) */}
+        <div className="absolute left-6 right-6 bottom-10 z-20">
+          <p
+            className="text-pink-500 text-sm mb-2"
+            style={{ fontFamily: "Orkney, sans-serif" }}
           >
-            <span className={`text-2xl ${isLiked ? 'text-red-500' : 'text-gray-400'}`}>
-              ♥
-            </span>
-            <span>Like</span>
-          </button>
-          <button className="flex items-center space-x-2 text-gray-400">
-            <span className="text-2xl">💬</span>
-            <span>Comment</span>
-          </button>
-        </div>
+            IGN Entertainment
+          </p>
 
-        {/* Sección de comentarios */}
-        <div className="space-y-4">
-          {comments.map(comment => (
-            <div key={comment.id} className="border-b border-white/10 pb-4">
-              <div className="flex justify-between items-start mb-2">
-                <span className="font-semibold text-[#C72C8D]">{comment.username}</span>
-                <span className="text-gray-400 text-sm">{comment.time}</span>
-              </div>
-              <p className="text-gray-300">{comment.text}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Input para comentar */}
-        <form onSubmit={handleCommentSubmit} className="fixed bottom-0 left-0 right-0 bg-[#1B1E54] p-4 border-t border-white/10">
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Message"
-              className="flex-1 bg-[#2B1A40] rounded-full px-4 py-2 text-white placeholder-gray-400 focus:outline-none"
-            />
-            <button 
-              type="submit"
-              className="bg-[#C72C8D] rounded-full px-6 py-2 font-semibold"
-            >
-              Send
-            </button>
+          <div className="inline-block bg-pink-600/90 text-xs px-3 py-1 rounded-full mb-4 font-[Orkney]">
+            NEWS
           </div>
-        </form>
+
+        </div>
       </div>
+
+      {/* CAJA DE COMENTARIOS: fixed bottom, la movemos con translateY */}
+      <div
+        className="fixed left-0 right-0 bottom-0 z-30"
+        style={{
+          transform: `translateY(${translateY}px)`,
+          transition: "transform 220ms cubic-bezier(.2,.9,.2,1)",
+        }}
+      >
+        {/* panel visual */}
+        <div className="mx-4 mb-4 bg-[#181434]/95 backdrop-blur-xl rounded-t-3xl shadow-lg overflow-hidden">
+          {/* contenido scrollable de la caja: ponemos padding-bottom para que el input no tape contenido */}
+          <div className="px-6 pt-6 pb-28 max-h-[55vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <span
+                className="text-sm font-semibold"
+                style={{ fontFamily: "Orkney, sans-serif" }}
+              >
+                {comments.length} COMMENTS
+              </span>
+              <span
+                className="text-pink-500 font-semibold"
+                style={{ fontFamily: "Orkney, sans-serif" }}
+              >
+                1.4K ♥
+              </span>
+            </div>
+
+            {/* lista de comentarios */}
+            <div className="space-y-5">
+              {comments.map((c, i) => (
+                <div key={i} className="flex gap-3 items-start">
+                  <img
+                    src={c.avatar}
+                    alt={c.user}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center text-xs text-gray-400">
+                      <span style={{ fontFamily: "Orkney, sans-serif" }}>
+                        {c.user}
+                      </span>
+                      <span className="text-right">{c.time}</span>
+                    </div>
+                    <p
+                      className="text-sm text-gray-200 mt-1"
+                      style={{ fontFamily: "Orkney, sans-serif" }}
+                    >
+                      {c.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Input siempre visible (dentro de la misma caja) */}
+          <div className="relative">
+            <div className="px-4 pb-4 pt-2">
+              <div className="bg-gradient-to-r from-[#131230] to-[#702A4C] rounded-full p-2 flex items-center gap-3">
+                <input
+                  aria-label="write a comment"
+                  className="flex-1 bg-transparent outline-none text-white placeholder-gray-300 px-3 py-2 text-sm"
+                  placeholder="Message"
+                />
+                <button
+                  className="bg-white/10 px-4 py-2 rounded-full text-white font-semibold"
+                  aria-label="send"
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ESPACIO extra al final para permitir más scroll si se necesita */}
+      <div style={{ height: "120vh" }} />
     </div>
   );
 }
+

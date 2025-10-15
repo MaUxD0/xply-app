@@ -3,6 +3,7 @@ import PopularGames from "../components/PopularGames";
 
 
 const postsData = [
+  
   {
     id: 1,
     username: "IGN Entertainment",
@@ -74,7 +75,10 @@ export default function Feed() {
             </div>
 
             {/* Imagen o carrusel */}
-            <div className="relative w-full">
+  <div 
+  className="relative w-full cursor-pointer"
+  onClick={() => window.location.href = `/post/${post.id}`}
+>
               {post.images.length > 1 ? (
                 <div className="flex overflow-x-auto snap-x snap-mandatory">
                   {post.images.map((img, idx) => (
