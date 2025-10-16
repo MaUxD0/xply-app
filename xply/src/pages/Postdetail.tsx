@@ -74,7 +74,7 @@ export default function PostDetail() {
           ←
         </button>
 
-        {/* TITULO sobre la imagen (solo título, sin descripción) */}
+        {/* TITULO sobre la imagen  */}
         <div className="absolute left-6 right-6 bottom-10 z-20">
           <p
             className="text-pink-500 text-sm mb-2"
@@ -166,7 +166,7 @@ export default function PostDetail() {
         </div>
       </div>
 
-      {/* ESPACIO extra al final para permitir más scroll si se necesita */}
+
       <div style={{ height: "120vh" }} />
     </div>
   );

@@ -1,3 +1,4 @@
+import BottomNav from "../components/BottomNav";
 import { useState } from "react";
 import PopularGames from "../components/PopularGames";
 
@@ -39,6 +40,16 @@ const postsData = [
 
 export default function Feed() {
   const [posts] = useState(postsData);
+// ✅ Maneja la navegación según el botón presionado en el BottomNav
+const handleNavigate = (page: string) => {
+  if (page === "home") {
+    window.location.href = "/feed";
+  } else if (page === "camera") {
+    window.location.href = "/create"; // te llevará a la página de crear post
+  } else if (page === "profile") {
+    window.location.href = "/profile"; // futura pantalla de perfil
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B0C23] to-[#3C003B] text-white font-sans">
@@ -47,7 +58,6 @@ export default function Feed() {
         <h1 className="font-['Anurati'] text-2xl tracking-widest mb-6">
           XPLY
         </h1>
-
         {/* POPULAR GAMES */}
         <section className="mt-4 mb-8">
   <PopularGames />
@@ -56,7 +66,8 @@ export default function Feed() {
       </header>
 
       {/* POSTS */}
-      <main className="mt-8 space-y-10 px-4">
+      <main className="mt-8 space-y-10 px-4 pb-24">
+
         {posts.map((post) => (
           <div
             key={post.id}
@@ -118,6 +129,8 @@ export default function Feed() {
           </div>
         ))}
       </main>
+<BottomNav onNavigate={handleNavigate} />
+
     </div>
   );
 }
