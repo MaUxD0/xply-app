@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Feed from "./pages/feed";
 import PostDetail from "./pages/PostDetail";
 import CreatePost from "./pages/CreatePost";
+import Profile from "./pages/Profile";
 
 function App() {
   const path = window.location.pathname;
@@ -15,10 +16,12 @@ function App() {
   }, [path]); 
 
   //  Manejo de rutas 
+
   if (path === "/create") return <CreatePost />
   if (path.startsWith("/post/")) return <PostDetail />;
   if (path === "/register") return <Register />;
   if (path === "/feed") return <Feed />;
+  if (path === "/profile") return <Profile />; 
   return <Login />; // Ruta por defecto "/"
 }
 

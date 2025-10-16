@@ -40,16 +40,17 @@ const postsData = [
 
 export default function Feed() {
   const [posts] = useState(postsData);
-// ✅ Maneja la navegación según el botón presionado en el BottomNav
+// Maneja la navegación que viene del BottomNav
 const handleNavigate = (page: string) => {
   if (page === "home") {
     window.location.href = "/feed";
   } else if (page === "camera") {
-    window.location.href = "/create"; // te llevará a la página de crear post
+    window.location.href = "/create";
   } else if (page === "profile") {
-    window.location.href = "/profile"; // futura pantalla de perfil
+    window.location.href = "/profile";
   }
 };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B0C23] to-[#3C003B] text-white font-sans">
