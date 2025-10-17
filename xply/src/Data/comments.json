@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "postId": 1,
+    "user": "@JeanetteGottlieb",
+    "avatar": "https://randomuser.me/api/portraits/women/1.jpg",
+    "time": "1 hour ago",
+    "text": "This play was amazing! The soundtrack and atmosphere are perfect."
+  },
+  {
+    "id": 2,
+    "postId": 1,
+    "user": "@FernandoPidrilio",
+    "avatar": "https://randomuser.me/api/portraits/men/2.jpg",
+    "time": "2 hours ago",
+    "text": "That boss fight was insane, love the new mechanics!"
+  },
+  {
+    "id": 3,
+    "postId": 1,
+    "user": "@AngelaMayer",
+    "avatar": "https://randomuser.me/api/portraits/women/3.jpg",
+    "time": "3 hours ago",
+    "text": "Graphics are gorgeous. I want more DLC already."
+  }
+]

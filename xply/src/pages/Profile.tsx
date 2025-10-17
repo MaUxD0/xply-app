@@ -156,7 +156,7 @@ export default function Profile() {
           </div>
         </section>
 
-        {/* LÍNEA DIVISORIA */}
+        {/* LÍNEA */}
         <div className="mt-8 mb-6">
           <hr className="border-t border-[#6A5ACD]/30 w-full" />
         </div>

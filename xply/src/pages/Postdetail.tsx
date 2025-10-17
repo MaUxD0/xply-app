@@ -1,11 +1,14 @@
-
 import { useEffect, useState } from "react";
 import CommentItem from "../components/CommentItem";
+
+import commentsData from "../data/comments.json";
 
 export default function PostDetail() {
   const [scrollY, setScrollY] = useState(0);
   const [hiddenStart, setHiddenStart] = useState(0);
   const [comment, setComment] = useState("");
+
+  const comments = commentsData;
 
   useEffect(() => {
     const computeHidden = () => {
@@ -24,27 +27,6 @@ export default function PostDetail() {
   }, []);
 
   const translateY = Math.max(hiddenStart - scrollY, 0);
-
-  const comments = [
-    {
-      user: "@JeanetteGottlieb",
-      time: "1 hour ago",
-      text: "This play was amazing! The soundtrack and atmosphere are perfect.",
-      avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-    },
-    {
-      user: "@FernandoPidrilio",
-      time: "2 hours ago",
-      text: "That boss fight was insane, love the new mechanics!",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      user: "@AngelaMayer",
-      time: "3 hours ago",
-      text: "Graphics are gorgeous. I want more DLC already.",
-      avatar: "https://randomuser.me/api/portraits/women/3.jpg",
-    },
-  ];
 
   const handleSendComment = () => {
     if (comment.trim()) {
@@ -74,7 +56,7 @@ export default function PostDetail() {
           ←
         </button>
 
-        {/* TITULO sobre la imagen */}
+        {/* TITULO */}
         <div className="absolute left-6 right-6 bottom-10 z-20">
           <p
             className="text-pink-500 text-sm mb-2"
@@ -117,9 +99,9 @@ export default function PostDetail() {
 
             {/* lista de comentarios */}
             <div className="space-y-5">
-              {comments.map((c, i) => (
+              {comments.map((c) => (
                 <CommentItem
-                  key={i}
+                  key={c.id}
                   user={c.user}
                   avatar={c.avatar}
                   time={c.time}
