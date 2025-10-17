@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import BottomNav from "../components/BottomNav";
 import GameCard from "../components/GameCard";
@@ -65,96 +64,84 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#702A4C] to-[#090619] text-white font-sans pb-24">
-      {/* BANNER DE PORTADA */}
-      <div className="relative h-64 overflow-hidden">
+      {/* BANNER DE PORTADA*/}
+      <div className="relative h-80 overflow-hidden">
+        {/* Imagen de portada de fondo */}
+        <img
+          src="https://image.api.playstation.com/vulcan/ap/rnd/202505/3100/ef79f649e45961a7e6342ebf26bc827b8b9603d69b2fdb5c.png"
+          alt="cover"
+          className="w-full h-full object-cover"
+        />
+        
+        {/* Gradiente oscuro */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#702A4C]"></div>
+
         {/* Texto PROFILE */}
         <div className="absolute top-6 left-6 z-20">
           <h1 className="text-white font-['Anurati'] text-lg tracking-widest">PROFILE</h1>
         </div>
 
-        {/* Imagen de portada */}
-        <img
-          src="https://www.chilevision.cl/chilevision/site/artic/20220331/imag/foto_0000000820220331191217/doom_alt_boxart.0.0.jpg"
-          alt="cover"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#0B0C23]"></div>
-      </div>
-
-      {/* SECCIÓN DE PERFIL */}
-      <div className="relative -mt-24">
-        {/* SEMICÍRCULO ROSADO  */}
-        <div
-          className="w-full h-56 bg-[#C72C8D]"
-          style={{ borderRadius: "50% 50% 0 0" }}
-        ></div>
-
-        {/* AVATAR EN EL CENTRO */}
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30">
+        {/* AVATAR */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
           <div className="relative">
             <img
               src={avatar}
               alt="avatar"
-              className="w-32 h-32 rounded-full border-4 border-[#0E0A2A] object-cover shadow-2xl"
+              className="w-32 h-32 rounded-full border-4 border-white/20 object-cover shadow-2xl"
             />
           </div>
         </div>
 
-        {/* USERNAME */}
-        <div className="absolute top-52 left-1/2 -translate-x-1/2 z-30 text-center">
-          <h2 className="text-white text-base font-medium">@Stevgame</h2>
+        {/* USERNAME  */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 text-center">
+          <h2 className="text-white text-lg font-medium font-['Orkney']">@Stevgame</h2>
         </div>
       </div>
 
-      {/* FOLLOWERS, BOTONES Y FOLLOWING */}
-      <div className="flex items-end justify-between px-6 mt-8">
-        {/* FOLLOWERS  */}
-        <div className="text-center">
-          <p className="text-3xl font-bold text-white mb-1">300</p>
-          <p className="text-xs text-gray-300">Followers</p>
+      {/* SECCIÓN DE ESTADÍSTICAS Y BOTONES */}
+      <div className="px-6 mt-8">
+        {/* FOLLOWERS, BOTONES Y FOLLOWING */}
+        <div className="flex items-center justify-between">
+          {/* FOLLOWERS */}
+          <div className="text-center">
+            <p className="text-3xl font-bold text-white mb-1">300</p>
+            <p className="text-xs text-gray-300 font-['Orkney']">Followers</p>
+          </div>
+
+          {/* BOTONES CENTRALES */}
+          <div className="flex gap-4 items-center">
+            {/* Botón Add */}
+            <button className="hover:opacity-70 transition">
+              <span className="material-symbols-outlined text-[#C72C8D] text-3xl">add_circle</span>
+            </button>
+
+            {/* Botón Cámara - para cambiar avatar */}
+            <label className="cursor-pointer hover:opacity-70 transition">
+              <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </label>
+
+            {/* Botón Favorito */}
+            <button className="hover:opacity-70 transition">
+              <span className="material-symbols-outlined text-[#FF0099] text-3xl">favorite</span>
+            </button>
+          </div>
+
+          {/* FOLLOWING */}
+          <div className="text-center">
+            <p className="text-3xl font-bold text-white mb-1">100</p>
+            <p className="text-xs text-gray-300 font-['Orkney']">Following</p>
+          </div>
         </div>
 
-        {/* BOTONES CENTRALES */}
-        <div className="flex gap-2 mb-1">
-          {/* Botón Add */}
-          <button className="w-10 h-10 rounded-full bg-[#C72C8D] flex items-center justify-center hover:bg-[#d93c98] transition">
-            <span className="material-symbols-outlined text-white text-xl">
-              add
-            </span>
-          </button>
-
-          {/* Botón Cámara - para cambiar avatar */}
-          <label className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center cursor-pointer hover:bg-white/10 transition">
-            <span className="material-symbols-outlined text-white text-xl">
-              photo_camera
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
-          </label>
-
-          {/* Botón Favorito */}
-          <button className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center hover:bg-white/10 transition">
-            <span className="material-symbols-outlined text-white text-xl">
-              favorite
-            </span>
-          </button>
-        </div>
-
-        {/* FOLLOWING  */}
-        <div className="text-center">
-          <p className="text-3xl font-bold text-white mb-1">100</p>
-          <p className="text-xs text-gray-300">Following</p>
-        </div>
-      </div>
-
-      {/* FAVORITE GAMES */}
-      <div className="px-6 mt-12">
-        <section className="mt-8">
-          <h2 className="font-['Anurati'] text-xl text-center mb-4 tracking-wider">
+        {/* FAVORITE GAMES */}
+        <section className="mt-12">
+          <h2 className="font-['Anurati'] text-xl text-center mb-6 tracking-wider">
             FAVORITE GAMES
           </h2>
           <div className="flex gap-4 overflow-x-auto pb-4">
@@ -169,8 +156,13 @@ export default function Profile() {
           </div>
         </section>
 
+        {/* LÍNEA DIVISORIA */}
+        <div className="mt-8 mb-6">
+          <hr className="border-t border-[#6A5ACD]/30 w-full" />
+        </div>
+
         {/* FEED MASONRY */}
-        <section className="mt-6 columns-2 gap-2">
+        <section className="columns-2 gap-2">
           {posts.map((post) => (
             <div
               key={post.id}

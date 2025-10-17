@@ -8,7 +8,7 @@ const postsData = [
   {
     id: 1,
     username: "IGN Entertainment",
-    avatar: "https://i.pravatar.cc/100?img=5",
+    avatar: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaSPTFFzjIQ9rVuzTtUmkOngX307ztJdLFNQ&s ",
     caption:
       "HOLLOW KNIGHT: SILKSONG SHATTERS RECORDS WITH AN ESTIMATED 5 MILLION PLAYERS IN ITS FIRST 3 DAYS",
     likes: 1400,
