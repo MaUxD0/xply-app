@@ -1,10 +1,10 @@
-import BottomNav from "../components/BottomNav";
-import { useState } from "react";
-import PopularGames from "../components/PopularGames";
 
+import { useState } from "react";
+import BottomNav from "../components/BottomNav";
+import PopularGames from "../components/PopularGames";
+import PostCard from "../components/PostCard";
 
 const postsData = [
-  
   {
     id: 1,
     username: "IGN Entertainment",
@@ -31,108 +31,63 @@ const postsData = [
   {
     id: 3,
     username: "RedeadPosting",
-    avatar: "https://i.pravatar.cc/100?img=32",
+    avatar: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_O6cP5kd-KnFwJiY7RPh1cCq6z3LyKbAjlQ&s",
     caption: "The best game ever, Arthur you are a legend... more",
     likes: 9860,
-    images: ["https://preview.redd.it/i-played-arthurs-last-mission-v0-hwygewohqhdd1.jpeg?auto=webp&s=0c3287619ba559cff1ac30d22d5dbf4bc2b2a364"],
+    images: [
+      "https://preview.redd.it/i-played-arthurs-last-mission-v0-hwygewohqhdd1.jpeg?auto=webp&s=0c3287619ba559cff1ac30d22d5dbf4bc2b2a364",
+    ],
   },
 ];
 
 export default function Feed() {
   const [posts] = useState(postsData);
-// Maneja la navegación que viene del BottomNav
-const handleNavigate = (page: string) => {
-  if (page === "home") {
-    window.location.href = "/feed";
-  } else if (page === "camera") {
-    window.location.href = "/create";
-  } else if (page === "profile") {
-    window.location.href = "/profile";
-  }
-};
 
+  const handleNavigate = (page: string) => {
+    if (page === "home") {
+      window.location.href = "/feed";
+    } else if (page === "camera") {
+      window.location.href = "/create";
+    } else if (page === "profile") {
+      window.location.href = "/profile";
+    }
+  };
+
+  const handlePostClick = (id: number) => {
+    window.location.href = `/post/${id}`;
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0B0C23] to-[#3C003B] text-white font-sans">
+    <div className="min-h-screen bg-gradient-to-b from-[#090619] to-[#702A4C] text-white font-sans">
       {/* HEADER */}
       <header className="px-6 pt-6">
         <h1 className="font-['Anurati'] text-2xl tracking-widest mb-6">
           XPLY
         </h1>
+
         {/* POPULAR GAMES */}
         <section className="mt-4 mb-8">
-  <PopularGames />
-</section>
-          
+          <PopularGames />
+        </section>
       </header>
 
       {/* POSTS */}
       <main className="mt-8 space-y-10 px-4 pb-24">
-
         {posts.map((post) => (
-          <div
+          <PostCard
             key={post.id}
-            className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg"
-          >
-            {/* Header de usuario */}
-            <div className="flex items-center gap-3 p-4">
-              <img
-                src={post.avatar}
-                alt={post.username}
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <h4 className="font-semibold">{post.username}</h4>
-              </div>
-            </div>
-
-            {/* Imagen o carrusel */}
-  <div 
-  className="relative w-full cursor-pointer"
-  onClick={() => window.location.href = `/post/${post.id}`}
->
-              {post.images.length > 1 ? (
-                <div className="flex overflow-x-auto snap-x snap-mandatory">
-                  {post.images.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      className="w-full h-72 object-cover flex-shrink-0 snap-center"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <img
-                  src={post.images[0]}
-                  alt="Post"
-                  className="w-full h-72 object-cover"
-                />
-              )}
-
-              {/* Overlay de botones */}
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-10 bg-black/40 backdrop-blur-md py-2 rounded-full mx-10">
-                <span className="material-symbols-outlined text-pink-500 cursor-pointer">
-                  favorite
-                </span>
-                <span className="material-symbols-outlined text-white cursor-pointer">
-                  chat_bubble
-                </span>
-                <span className="material-symbols-outlined text-white cursor-pointer">
-                  bookmark
-                </span>
-              </div>
-            </div>
-
-            {/* Texto */}
-            <div className="p-4">
-              <p className="text-sm text-gray-300">{post.caption}</p>
-            </div>
-          </div>
+            id={post.id}
+            username={post.username}
+            avatar={post.avatar}
+            caption={post.caption}
+            likes={post.likes}
+            images={post.images}
+            onPostClick={handlePostClick}
+          />
         ))}
       </main>
-<BottomNav onNavigate={handleNavigate} />
 
+      <BottomNav onNavigate={handleNavigate} />
     </div>
   );
 }
-

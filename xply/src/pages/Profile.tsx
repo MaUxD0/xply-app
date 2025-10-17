@@ -1,5 +1,7 @@
+
 import { useState } from "react";
 import BottomNav from "../components/BottomNav";
+import GameCard from "../components/GameCard";
 
 export default function Profile() {
   const [avatar, setAvatar] = useState("https://i.pravatar.cc/300?img=12");
@@ -13,6 +15,16 @@ export default function Profile() {
     }
   };
 
+  const handleNavigate = (page: string) => {
+    if (page === "home") {
+      window.location.href = "/feed";
+    } else if (page === "camera") {
+      window.location.href = "/create";
+    } else if (page === "profile") {
+      window.location.href = "/profile";
+    }
+  };
+
   const favoriteGames = [
     {
       title: "Cyberpunk 2077",
@@ -23,7 +35,7 @@ export default function Profile() {
       img: "https://media.es.wired.com/photos/638fd68c7db986e0c2d6b19a/master/pass/Breath-of-the-Wild-Casual-Gamer-Culture.jpg",
     },
     {
-      title: "Skyrim", 
+      title: "Skyrim",
       img: "https://i.blogs.es/8ad064/skyrim-secretos-curiosidades/1366_2000.jpeg",
     },
   ];
@@ -36,7 +48,7 @@ export default function Profile() {
     },
     {
       id: 2,
-      img: "https://hips.hearstapps.com/hmg-prod/images/red-dead-redemption-2-1540300058.jpg", 
+      img: "https://hips.hearstapps.com/hmg-prod/images/red-dead-redemption-2-1540300058.jpg",
       aspect: "aspect-[16/9]",
     },
     {
@@ -52,16 +64,15 @@ export default function Profile() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0B0C23] to-[#3C003B] text-white font-sans pb-24">
-      
+    <div className="min-h-screen bg-gradient-to-b from-[#702A4C] to-[#090619] text-white font-sans pb-24">
       {/* BANNER DE PORTADA */}
       <div className="relative h-64 overflow-hidden">
-        {/* Texto PROFILE arriba a la izquierda */}
-        <div className="absolute top-4 left-6 z-20">
-          <h1 className="text-white text-lg font-bold tracking-wider">PROFILE</h1>
+        {/* Texto PROFILE */}
+        <div className="absolute top-6 left-6 z-20">
+          <h1 className="text-white font-['Anurati'] text-lg tracking-widest">PROFILE</h1>
         </div>
-        
-        {/* Banner */}
+
+        {/* Imagen de portada */}
         <img
           src="https://www.chilevision.cl/chilevision/site/artic/20220331/imag/foto_0000000820220331191217/doom_alt_boxart.0.0.jpg"
           alt="cover"
@@ -70,44 +81,53 @@ export default function Profile() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#0B0C23]"></div>
       </div>
 
-      {/* SECCIÓN DE PERFIL CON SEMICÍRCULO */}
+      {/* SECCIÓN DE PERFIL */}
       <div className="relative -mt-24">
-        
-        {/* SEMICÍRCULO ROSADO - GRANDE, OCUPA TODO EL ANCHO */}
-        <div className="w-full h-56 bg-pink-600" style={{ borderRadius: '50% 50% 0 0' }}></div>
-        
-        {/* AVATAR - EN EL CENTRO */}
+        {/* SEMICÍRCULO ROSADO  */}
+        <div
+          className="w-full h-56 bg-[#C72C8D]"
+          style={{ borderRadius: "50% 50% 0 0" }}
+        ></div>
+
+        {/* AVATAR EN EL CENTRO */}
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30">
-          <img
-            src={avatar}
-            alt="avatar"
-            className="w-32 h-32 rounded-full border-4 border-black object-cover shadow-2xl"
-          />
+          <div className="relative">
+            <img
+              src={avatar}
+              alt="avatar"
+              className="w-32 h-32 rounded-full border-4 border-[#0E0A2A] object-cover shadow-2xl"
+            />
+          </div>
         </div>
-        
+
         {/* USERNAME */}
-        <div className="absolute top-52 left-1/2 -translate-x-1/2 z-30">
+        <div className="absolute top-52 left-1/2 -translate-x-1/2 z-30 text-center">
           <h2 className="text-white text-base font-medium">@Stevgame</h2>
         </div>
       </div>
 
       {/* FOLLOWERS, BOTONES Y FOLLOWING */}
       <div className="flex items-end justify-between px-6 mt-8">
-        
-        {/* 300 FOLLOWERS - IZQUIERDA */}
-        <div className="text-left">
+        {/* FOLLOWERS  */}
+        <div className="text-center">
           <p className="text-3xl font-bold text-white mb-1">300</p>
           <p className="text-xs text-gray-300">Followers</p>
         </div>
 
         {/* BOTONES CENTRALES */}
         <div className="flex gap-2 mb-1">
-          <button className="w-10 h-10 rounded-full bg-pink-600 flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-base">add</span>
+          {/* Botón Add */}
+          <button className="w-10 h-10 rounded-full bg-[#C72C8D] flex items-center justify-center hover:bg-[#d93c98] transition">
+            <span className="material-symbols-outlined text-white text-xl">
+              add
+            </span>
           </button>
-          
-          <label className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center cursor-pointer">
-            <span className="material-symbols-outlined text-white text-base">photo_camera</span>
+
+          {/* Botón Cámara - para cambiar avatar */}
+          <label className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center cursor-pointer hover:bg-white/10 transition">
+            <span className="material-symbols-outlined text-white text-xl">
+              photo_camera
+            </span>
             <input
               type="file"
               accept="image/*"
@@ -115,14 +135,17 @@ export default function Profile() {
               onChange={handleAvatarChange}
             />
           </label>
-          
-          <button className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-base">favorite</span>
+
+          {/* Botón Favorito */}
+          <button className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center hover:bg-white/10 transition">
+            <span className="material-symbols-outlined text-white text-xl">
+              favorite
+            </span>
           </button>
         </div>
 
-        {/* 100 FOLLOWING - DERECHA */}
-        <div className="text-right">
+        {/* FOLLOWING  */}
+        <div className="text-center">
           <p className="text-3xl font-bold text-white mb-1">100</p>
           <p className="text-xs text-gray-300">Following</p>
         </div>
@@ -131,22 +154,17 @@ export default function Profile() {
       {/* FAVORITE GAMES */}
       <div className="px-6 mt-12">
         <section className="mt-8">
-          <h2 className="font-['Anurati'] text-xl text-center mb-4">
+          <h2 className="font-['Anurati'] text-xl text-center mb-4 tracking-wider">
             FAVORITE GAMES
           </h2>
           <div className="flex gap-4 overflow-x-auto pb-4">
             {favoriteGames.map((game, i) => (
-              <div
+              <GameCard
                 key={i}
-                className="flex-shrink-0 w-40 rounded-xl overflow-hidden bg-white/10 border border-white/10"
-              >
-                <img
-                  src={game.img}
-                  alt={game.title}
-                  className="w-full h-44 object-cover"
-                />
-                <p className="text-sm text-center py-2">{game.title}</p>
-              </div>
+                title={game.title}
+                img={game.img}
+                onClick={() => console.log("Clicked:", game.title)}
+              />
             ))}
           </div>
         </section>
@@ -156,7 +174,8 @@ export default function Profile() {
           {posts.map((post) => (
             <div
               key={post.id}
-              className={`mb-2 overflow-hidden rounded-xl bg-white/5 border border-white/10`}
+              className="mb-2 overflow-hidden rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:opacity-80 transition"
+              onClick={() => (window.location.href = `/post/${post.id}`)}
             >
               <img
                 src={post.img}
@@ -168,7 +187,8 @@ export default function Profile() {
         </section>
       </div>
 
-      <BottomNav onNavigate={(page) => console.log("Ir a:", page)} />
+      <BottomNav onNavigate={handleNavigate} />
     </div>
   );
 }
+
