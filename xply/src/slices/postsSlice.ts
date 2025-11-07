@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk,} from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
 import axios from 'axios';
+import type { PayloadAction } from '@reduxjs/toolkit';
 
 // Definimos la estructura de un post
 export interface Post {
@@ -38,6 +38,20 @@ const initialState: PostsState = {
   currentPost: null,
 };
 
+// Array de imágenes de videojuegos reales
+const gameImages = [
+  'https://media.rawg.io/media/games/456/456dea5e1c7e3cd07060c14e96612001.jpg', // GTA V
+  'https://media.rawg.io/media/games/20a/20aa03a10cda45239fe22d035c0ebe64.jpg', // Witcher 3
+  'https://media.rawg.io/media/games/5c0/5c0dd63002cb23f804aab327d40ef119.jpg', // Red Dead 2
+  'https://media.rawg.io/media/games/fc1/fc1307a2774506b5bd65d7e8424664a7.jpg', // Minecraft
+  'https://media.rawg.io/media/games/b7d/b7d3f1715fa8381a4e780173a197a615.jpg', // God of War
+  'https://media.rawg.io/media/games/d82/d82990b9c67ba0d2d09d4e6fa88885a7.jpg', // Elden Ring
+  'https://media.rawg.io/media/games/7cf/7cfc9220b401b7a300e409e539c9afd5.jpg', // Cyberpunk
+  'https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6bcdbc.jpg', // Skyrim
+  'https://media.rawg.io/media/games/8cc/8cce7c0e99dcc43d66c8efd42f9d03e3.jpg', // Zelda BOTW
+  'https://media.rawg.io/media/games/021/021c4e21a1824d2526f925eff6324653.jpg', // Hollow Knight
+];
+
 // Async thunk para obtener posts de la API
 export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
   const [postsRes, usersRes] = await Promise.all([
@@ -45,13 +59,13 @@ export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
     axios.get('https://jsonplaceholder.typicode.com/users'),
   ]);
   
-  const posts: Post[] = postsRes.data.map((post: any) => {
+  const posts: Post[] = postsRes.data.map((post: any, index: number) => {
     const user = usersRes.data.find((u: any) => u.id === post.userId);
     return {
       ...post,
       username: user?.username || 'Unknown',
       avatar: `https://i.pravatar.cc/100?img=${post.userId}`,
-      images: [`https://picsum.photos/600/400?random=${post.id}`],
+      images: [gameImages[index % gameImages.length]], // Usa imágenes de videojuegos reales
       likes: Math.floor(Math.random() * 10000),
     };
   });

@@ -1,5 +1,7 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../store/hooks";
+import { login } from "../slices/authSlice";
 import FormField from "../components/FormField";
 
 export default function Register() {
@@ -7,6 +9,10 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -18,16 +24,44 @@ export default function Register() {
   };
 
   const handleRegister = () => {
-    if (password !== confirmPassword) {
-      alert("Passwords don't match!");
+    // Validaciones
+    if (!email || !password || !confirmPassword) {
+      setError("Please fill in all fields");
       return;
     }
-    console.log({ email, password, image });
-    window.location.href = "/";
+    
+    if (!email.includes("@")) {
+      setError("Please enter a valid email");
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setError("Passwords don't match!");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    // Creamos el usuario
+    const user = {
+      id: Math.floor(Math.random() * 100),
+      email,
+      username: email.split("@")[0],
+      avatar: image || `https://i.pravatar.cc/300?img=${Math.floor(Math.random() * 70)}`,
+    };
+    
+    // Login automático después del registro
+    dispatch(login(user));
+    
+    // Navegamos al feed
+    navigate("/feed");
   };
 
   const handleBack = () => {
-    window.location.href = "/";
+    navigate("/");
   };
 
   return (
@@ -71,13 +105,23 @@ export default function Register() {
           REGISTER
         </h2>
 
+        {/* Mensaje de error */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Campos del formulario */}
         <FormField
           type="email"
           placeholder="Email ID"
           icon="mail"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError("");
+          }}
         />
 
         <FormField
@@ -85,7 +129,10 @@ export default function Register() {
           placeholder="Password"
           icon="lock"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError("");
+          }}
         />
 
         <FormField
@@ -93,7 +140,10 @@ export default function Register() {
           placeholder="Confirm Password"
           icon="lock"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(e) => {
+            setConfirmPassword(e.target.value);
+            setError("");
+          }}
         />
 
         {/* Botón de registro */}
@@ -107,6 +157,5 @@ export default function Register() {
     </div>
   );
 }
-
 
 

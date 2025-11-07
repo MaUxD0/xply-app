@@ -1,4 +1,3 @@
-
 import UserHeader from "./UserHeader";
 import ImageCarousel from "./ImageCarousel";
 import PostActions from "./PostActions";
@@ -11,6 +10,7 @@ interface PostCardProps {
   likes: number;
   images: string[];
   onPostClick?: (id: number) => void;
+  onLike?: () => void;
 }
 
 export default function PostCard({
@@ -21,6 +21,7 @@ export default function PostCard({
   likes,
   images,
   onPostClick,
+  onLike,
 }: PostCardProps) {
   return (
     <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
@@ -35,7 +36,10 @@ export default function PostCard({
         <ImageCarousel images={images} />
 
         {/* Overlay de botones */}
-        <PostActions likes={likes} />
+        <PostActions 
+          likes={likes}
+          onLike={onLike}
+        />
       </div>
 
       {/* Texto */}

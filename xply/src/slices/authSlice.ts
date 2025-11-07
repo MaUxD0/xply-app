@@ -13,6 +13,7 @@ interface User {
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  rehydrated: boolean; // indica si ya intentamos rehidratar desde storage
 }
 
 // Intentamos cargar el usuario desde localStorage al iniciar
@@ -22,11 +23,13 @@ const loadUserFromStorage = (): User | null => {
 };
 
 const initialState: AuthState = {
+  // Cargamos el user desde 
   user: loadUserFromStorage(),
-  isAuthenticated: !!loadUserFromStorage(),
+  isAuthenticated: false,
+  rehydrated: false,
 };
 
-// Creamos el slice - esto genera automáticamente actions y reducer
+// Creamos el slice que esto genera automáticamente actions y reducer
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -35,6 +38,7 @@ const authSlice = createSlice({
     login: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       state.isAuthenticated = true;
+      state.rehydrated = true;
       // Guardamos en localStorage para persistir la sesión
       localStorage.setItem('xply_user', JSON.stringify(action.payload));
     },
@@ -43,6 +47,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      state.rehydrated = true;
       localStorage.removeItem('xply_user');
     },
     
@@ -53,8 +58,14 @@ const authSlice = createSlice({
         localStorage.setItem('xply_user', JSON.stringify(state.user));
       }
     },
+    // Rehidrata el estado de auth desde un usuario (no re-escribe localStorage)
+    rehydrate: (state, action: PayloadAction<User | null>) => {
+      state.user = action.payload;
+      state.isAuthenticated = !!action.payload;
+      state.rehydrated = true;
+    },
   },
 });
 
-export const { login, logout, updateAvatar } = authSlice.actions;
+export const { login, logout, updateAvatar, rehydrate } = authSlice.actions;
 export default authSlice.reducer;
