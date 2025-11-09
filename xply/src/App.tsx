@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useLocation } from 'react-router-dom';
+import { useLocation, Routes, Route } from 'react-router-dom';
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Feed from "./pages/feed";
@@ -13,21 +13,24 @@ function App() {
   const location = useLocation();
   const path = location.pathname;
 
-
   useEffect(() => {
     // Forzamos un resize event para que algunos componentes que dependen del tamaño
     // de la ventana se acomoden al cambiar de ruta.
     window.dispatchEvent(new Event("resize"));
   }, [path]); 
 
-  //  Manejo de rutas 
-
-  if (path === "/create") return <CreatePost />
-  if (path.startsWith("/post/")) return <PostDetail />;
-  if (path === "/register") return <Register />;
-  if (path === "/feed") return <Feed />;
-  if (path === "/profile") return <Profile />; 
-  return <Login />; // Ruta por defecto "/"
+  return (
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/feed" element={<Feed />} />
+      <Route path="/post/:id" element={<PostDetail />} />
+      <Route path="/create" element={<CreatePost />} />
+      <Route path="/profile" element={<Profile />} />
+      {/* fallback */}
+      <Route path="*" element={<Login />} />
+    </Routes>
+  );
 }
 
 export default App;

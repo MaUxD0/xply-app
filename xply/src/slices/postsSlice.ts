@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, } from '@reduxjs/toolkit';
-import axios from 'axios';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 // Definimos la estructura de un post
 export interface Post {
@@ -128,7 +128,10 @@ const postsSlice = createSlice({
     },
     
     setCurrentPost: (state, action: PayloadAction<number>) => {
+      console.log('Buscando post ID:', action.payload);
+      console.log(' Posts disponibles:', state.posts.map(p => ({ id: p.id, title: p.title })));
       const post = state.posts.find(p => p.id === action.payload);
+      console.log('Post encontrado:', post ? post.title : 'NO ENCONTRADO');
       state.currentPost = post || null;
     },
     
