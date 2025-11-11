@@ -8,6 +8,7 @@ interface PostCardProps {
   avatar: string;
   caption: string;
   likes: number;
+  isLiked?: boolean;
   images: string[];
   onPostClick?: (id: number) => void;
   onLike?: () => void;
@@ -19,6 +20,7 @@ export default function PostCard({
   avatar,
   caption,
   likes,
+  isLiked,
   images,
   onPostClick,
   onLike,
@@ -38,6 +40,7 @@ export default function PostCard({
         {/* Overlay de botones */}
         <PostActions 
           likes={likes}
+          isLiked={isLiked}
           onLike={onLike}
         />
       </div>

@@ -35,7 +35,6 @@ export default function Login() {
     }
     
     // Simulamos un login exitoso
-    // En producción, aquí harías una llamada a tu API
     const user = {
       id: Math.floor(Math.random() * 100),
       email,

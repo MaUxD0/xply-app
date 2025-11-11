@@ -21,7 +21,6 @@ export default function PostDetail() {
   // Primero cargamos los posts si no están cargados
   useEffect(() => {
     if (allPosts.length === 0 && !loading) {
-      console.log('📡 Cargando posts desde API...');
       dispatch(fetchPosts());
     }
   }, [allPosts.length, loading, dispatch]);
@@ -29,11 +28,9 @@ export default function PostDetail() {
   // Luego buscamos el post específico
   useEffect(() => {
     if (id && allPosts.length > 0) {
-      const postId = parseInt(id);
-      console.log('🔍 Buscando post con ID:', postId);
-      console.log('📦 Posts disponibles:', allPosts.map(p => p.id));
+  const postId = parseInt(id);
       
-      // Buscamos el post en la lista (usar igualdad flexible por si hay strings)
+      // Buscamos el post en la lista 
       const found = allPosts.find(p => (p.id as any) == postId);
       if (found) {
         dispatch(setCurrentPost(found.id));
@@ -69,7 +66,6 @@ export default function PostDetail() {
 
   const handleSendComment = () => {
     if (comment.trim()) {
-      console.log("Sending comment:", comment);
       setComment("");
     }
   };
@@ -146,7 +142,7 @@ export default function PostDetail() {
             {currentPost.title}
           </h1>
 
-          {/* Removed POST # badge as requested */}
+
         </div>
       </div>
 

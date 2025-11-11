@@ -58,7 +58,7 @@ const authSlice = createSlice({
         localStorage.setItem('xply_user', JSON.stringify(state.user));
       }
     },
-    // Rehidrata el estado de auth desde un usuario (no re-escribe localStorage)
+    // Rehidrata el estado de auth desde un usuario
     rehydrate: (state, action: PayloadAction<User | null>) => {
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;

@@ -19,10 +19,21 @@ export default function CreatePost() {
   const tags = ["#gameplay", "#skyrim", "#challenge", "#adventure", "#rpg"];
 
   const handleImageSelect = (files: FileList) => {
-    const newImages = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
-    setImages((prev) => [...prev, ...newImages]);
+    const readFile = (file: File): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+    Promise.all(Array.from(files).map(readFile))
+      .then((dataUrls) => setImages((prev) => [...prev, ...dataUrls]))
+      .catch((err) => {
+
+        console.error('Failed to read image files', err);
+        alert('Failed to read image files. Please try again.');
+      });
   };
 
   const handleRemoveImage = (url: string) => {
