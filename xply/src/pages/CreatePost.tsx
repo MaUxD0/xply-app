@@ -1,5 +1,7 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { createPost } from "../slices/postsSlice";
 import ImageUploadButton from "../components/ImageUploadButton";
 import ImagePreview from "../components/ImagePreview";
 import TagSelector from "../components/TagSelector";
@@ -8,14 +10,30 @@ export default function CreatePost() {
   const [images, setImages] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [caption, setCaption] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
 
   const tags = ["#gameplay", "#skyrim", "#challenge", "#adventure", "#rpg"];
 
   const handleImageSelect = (files: FileList) => {
-    const newImages = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
-    setImages((prev) => [...prev, ...newImages]);
+    const readFile = (file: File): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+    Promise.all(Array.from(files).map(readFile))
+      .then((dataUrls) => setImages((prev) => [...prev, ...dataUrls]))
+      .catch((err) => {
+
+        console.error('Failed to read image files', err);
+        alert('Failed to read image files. Please try again.');
+      });
   };
 
   const handleRemoveImage = (url: string) => {
@@ -28,18 +46,48 @@ export default function CreatePost() {
     );
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
+    // Validación
+    if (images.length === 0) {
+      alert("Please add at least one image");
+      return;
+    }
     
-    console.log({
-      images,
-      tags: selectedTags,
-      caption,
-    });
-    window.location.href = "/feed";
+    if (!caption.trim()) {
+      alert("Please add a caption");
+      return;
+    }
+    
+    if (!user) {
+      alert("You must be logged in to create a post");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Creamos el post con la acción async
+      await dispatch(createPost({
+        title: selectedTags.join(" "),
+        body: caption,
+        images,
+        userId: user.id,
+        username: user.username,
+        avatar: user.avatar,
+      })).unwrap();
+      
+      // Navegamos al feed
+      navigate("/feed");
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      alert("Failed to create post. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
-    window.location.href = "/feed";
+    navigate("/feed");
   };
 
   return (
@@ -56,6 +104,7 @@ export default function CreatePost() {
         <ImageUploadButton onImageSelect={handleImageSelect} />
         <ImagePreview images={images} onRemove={handleRemoveImage} />
       </div>
+      
       {/* Hashtags */}
       <TagSelector
         tags={tags}
@@ -76,16 +125,25 @@ export default function CreatePost() {
       <div className="flex justify-between mt-8">
         <button
           onClick={handleCancel}
-          className="bg-gray-300 text-gray-900 px-8 py-2 rounded-full hover:bg-gray-400 transition"
+          disabled={loading}
+          className="bg-gray-300 text-gray-900 px-8 py-2 rounded-full hover:bg-gray-400 transition disabled:opacity-50"
         >
           Cancel
         </button>
 
         <button
           onClick={handleUpload}
-          className="bg-gradient-to-r from-[#090619] to-[#702A4C] text-white px-8 py-2 rounded-full hover:opacity-90 transition"
+          disabled={loading}
+          className="bg-gradient-to-r from-[#090619] to-[#702A4C] text-white px-8 py-2 rounded-full hover:opacity-90 transition disabled:opacity-50 flex items-center gap-2"
         >
-          Upload
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Uploading...
+            </>
+          ) : (
+            "Upload"
+          )}
         </button>
       </div>
     </div>

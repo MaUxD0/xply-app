@@ -1,14 +1,50 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { setCurrentPost, fetchComments, clearCurrentPost, fetchPosts } from "../slices/postsSlice";
 import CommentItem from "../components/CommentItem";
-
-import commentsData from "../data/comments.json";
 
 export default function PostDetail() {
   const [scrollY, setScrollY] = useState(0);
   const [hiddenStart, setHiddenStart] = useState(0);
   const [comment, setComment] = useState("");
+  
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  
+  // Obtenemos el post actual y todos los posts
+  const currentPost = useAppSelector((state) => state.posts.currentPost);
+  const allPosts = useAppSelector((state) => state.posts.posts);
+  const loading = useAppSelector((state) => state.posts.loading);
 
-  const comments = commentsData;
+  // Primero cargamos los posts si no están cargados
+  useEffect(() => {
+    if (allPosts.length === 0 && !loading) {
+      dispatch(fetchPosts());
+    }
+  }, [allPosts.length, loading, dispatch]);
+
+  // Luego buscamos el post específico
+  useEffect(() => {
+    if (id && allPosts.length > 0) {
+  const postId = parseInt(id);
+      
+      // Buscamos el post en la lista 
+      const found = allPosts.find(p => (p.id as any) == postId);
+      if (found) {
+        dispatch(setCurrentPost(found.id));
+        // Luego cargamos los comentarios
+        dispatch(fetchComments(found.id));
+      } else {
+        console.warn('PostDetail: post no encontrado en allPosts', postId);
+      }
+    }
+
+    return () => {
+      dispatch(clearCurrentPost());
+    };
+  }, [id, allPosts.length, dispatch]);
 
   useEffect(() => {
     const computeHidden = () => {
@@ -30,17 +66,54 @@ export default function PostDetail() {
 
   const handleSendComment = () => {
     if (comment.trim()) {
-      console.log("Sending comment:", comment);
       setComment("");
     }
   };
+
+  // Si no hay posts cargados aún, mostramos loading
+  if (allPosts.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#0B0821] flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mb-4"></div>
+        <p className="text-gray-400">Loading posts...</p>
+        <p className="text-xs text-gray-500 mt-2">
+          Posts en Redux: {allPosts.length} | Loading: {loading ? 'Yes' : 'No'}
+        </p>
+      </div>
+    );
+  }
+
+  // Si no encontramos el post, mostramos error con más info
+  if (!currentPost) {
+    return (
+      <div className="min-h-screen bg-[#0B0821] flex flex-col items-center justify-center text-white p-6">
+        <span className="material-symbols-outlined text-6xl text-red-500 mb-4">
+          error
+        </span>
+        <h2 className="text-2xl font-bold mb-2">Post not found</h2>
+        <p className="text-gray-400 mb-2">The post you're looking for doesn't exist</p>
+        <div className="bg-white/5 p-4 rounded-lg mb-6 text-sm text-left">
+          <p className="text-gray-300">Debug info:</p>
+          <p className="text-xs text-gray-400">ID buscado: {id}</p>
+          <p className="text-xs text-gray-400">Posts disponibles: {allPosts.map(p => p.id).join(', ')}</p>
+          <p className="text-xs text-gray-400">Total posts: {allPosts.length}</p>
+        </div>
+        <button
+          onClick={() => navigate("/feed")}
+          className="bg-pink-600 px-6 py-3 rounded-full hover:bg-pink-700 transition"
+        >
+          Back to Feed
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0821] text-white relative">
       {/* IMAGEN PRINCIPAL */}
       <div className="relative w-full h-screen overflow-hidden">
         <img
-          src="https://pbs.twimg.com/media/G0ZMO8RbgAUt2Jz.jpg:large"
+          src={currentPost.images[0]}
           alt="Post"
           className="w-full h-full object-cover"
         />
@@ -49,25 +122,27 @@ export default function PostDetail() {
 
         {/* botón back */}
         <button
-          onClick={() => window.history.back()}
+          onClick={() => navigate(-1)}
           className="absolute left-4 top-6 z-20 text-white text-2xl hover:text-pink-500 transition"
           aria-label="back"
         >
           ←
         </button>
 
-        {/* TITULO */}
+        {/* INFO sobre la imagen */}
         <div className="absolute left-6 right-6 bottom-10 z-20">
           <p
             className="text-pink-500 text-sm mb-2"
             style={{ fontFamily: "Orkney, sans-serif" }}
           >
-            IGN Entertainment
+            @{currentPost.username}
           </p>
 
-          <div className="inline-block bg-pink-600/90 text-xs px-3 py-1 rounded-full mb-4 font-[Orkney]">
-            NEWS
-          </div>
+          <h1 className="text-2xl font-bold mb-2 line-clamp-2">
+            {currentPost.title}
+          </h1>
+
+
         </div>
       </div>
 
@@ -87,25 +162,39 @@ export default function PostDetail() {
                 className="text-sm font-semibold"
                 style={{ fontFamily: "Orkney, sans-serif" }}
               >
-                {comments.length} COMMENTS
+                {currentPost.comments?.length || 0} COMMENTS
               </span>
               <span
                 className="text-pink-500 font-semibold"
                 style={{ fontFamily: "Orkney, sans-serif" }}
               >
-                1.4K ♥
+                {currentPost.likes} ♥
               </span>
             </div>
 
+            {/* Caption del post */}
+            <div className="bg-white/5 rounded-xl p-4 mb-6">
+              <p className="text-gray-300 text-sm leading-relaxed">
+                {currentPost.body}
+              </p>
+            </div>
+
+            {/* Loading state de comentarios */}
+            {!currentPost.comments && (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+              </div>
+            )}
+
             {/* lista de comentarios */}
             <div className="space-y-5">
-              {comments.map((c) => (
+              {currentPost.comments?.map((c) => (
                 <CommentItem
                   key={c.id}
-                  user={c.user}
-                  avatar={c.avatar}
-                  time={c.time}
-                  text={c.text}
+                  user={c.name}
+                  avatar={`https://i.pravatar.cc/100?img=${c.id}`}
+                  time="Just now"
+                  text={c.body}
                 />
               ))}
             </div>
@@ -121,7 +210,7 @@ export default function PostDetail() {
                   onKeyDown={(e) => e.key === "Enter" && handleSendComment()}
                   aria-label="write a comment"
                   className="flex-1 bg-transparent outline-none text-white placeholder-gray-300 px-3 py-2 text-sm"
-                  placeholder="Message"
+                  placeholder="Write a comment..."
                 />
                 <button
                   onClick={handleSendComment}
@@ -140,4 +229,3 @@ export default function PostDetail() {
     </div>
   );
 }
-

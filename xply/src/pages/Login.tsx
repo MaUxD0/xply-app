@@ -1,19 +1,56 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { login } from "../slices/authSlice";
 import FormField from "../components/FormField";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, rehydrated } = useAppSelector((state) => state.auth);
+
+  // Si ya está autenticado y ya rehidratamos el estado inicial, redirige al feed
+  useEffect(() => {
+    if (isAuthenticated && rehydrated) {
+      navigate("/feed");
+    }
+  }, [isAuthenticated, rehydrated, navigate]);
 
   const handleLogin = (e: React.MouseEvent) => {
     e.preventDefault();
-    console.log({ email, password });
-    window.location.href = "/feed";
+    
+    // Validación básica
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+    
+    if (!email.includes("@")) {
+      setError("Please enter a valid email");
+      return;
+    }
+    
+    // Simulamos un login exitoso
+    const user = {
+      id: Math.floor(Math.random() * 100),
+      email,
+      username: email.split("@")[0],
+      avatar: `https://i.pravatar.cc/300?img=${Math.floor(Math.random() * 70)}`,
+    };
+    
+    // Despachamos la acción de login
+    dispatch(login(user));
+    
+    // React Router se encarga de la navegación automáticamente
+    // gracias al useEffect de arriba
   };
 
   const handleRegister = () => {
-    window.location.href = "/register";
+    navigate("/register");
   };
 
   return (
@@ -22,9 +59,7 @@ export default function Login() {
         {/* Avatar */}
         <div className="flex justify-center mb-6">
           <div className="relative w-24 h-24 rounded-full bg-[#1B1E54] overflow-hidden flex items-center justify-center">
-            {/* Cabeza */}
             <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-10 h-10 bg-[#C72C8D] rounded-full"></div>
-            {/* Semicírculo inferior */}
             <div className="absolute bottom-[-10%] left-0 w-full h-1/2 bg-[#C72C8D] rounded-t-full"></div>
           </div>
         </div>
@@ -34,13 +69,23 @@ export default function Login() {
           LOGIN
         </h2>
 
+        {/* Mensaje de error */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Campos del formulario */}
         <FormField
           type="email"
           placeholder="Email ID"
           icon="mail"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError("");
+          }}
         />
 
         <FormField
@@ -48,7 +93,10 @@ export default function Login() {
           placeholder="Password"
           icon="lock"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError("");
+          }}
         />
 
         {/* Botón de Login */}

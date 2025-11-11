@@ -1,16 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
-interface BottomNavProps {
-  onNavigate: (page: string) => void;
-}
-
-const BottomNav = ({ onNavigate }: BottomNavProps) => {
+const BottomNav = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [active, setActive] = useState("home");
 
-  // Maneja el cambio de pestaña
+  // Actualiza el estado activo basado en la ruta actual
+  useEffect(() => {
+    if (location.pathname === "/feed") {
+      setActive("home");
+    } else if (location.pathname === "/create") {
+      setActive("camera");
+    } else if (location.pathname === "/profile") {
+      setActive("profile");
+    }
+  }, [location.pathname]);
+
+  // Maneja el cambio de pestaña usando React Router
   const handleClick = (page: string) => {
     setActive(page);
-    onNavigate(page);
+    
+    if (page === "home") {
+      navigate("/feed");
+    } else if (page === "camera") {
+      navigate("/create");
+    } else if (page === "profile") {
+      navigate("/profile");
+    }
   };
 
   return (

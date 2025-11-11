@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import GameCard from "../components/GameCard";
+import { useAppDispatch } from "../store/hooks";
+import { logout } from "../slices/authSlice";
 
 export default function Profile() {
   const [avatar, setAvatar] = useState("https://i.pravatar.cc/300?img=12");
@@ -14,15 +17,17 @@ export default function Profile() {
     }
   };
 
-  const handleNavigate = (page: string) => {
-    if (page === "home") {
-      window.location.href = "/feed";
-    } else if (page === "camera") {
-      window.location.href = "/create";
-    } else if (page === "profile") {
-      window.location.href = "/profile";
-    }
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // dispatcha la acción que limpia el user en el store y localStorage
+    dispatch(logout());
+    // vuelve al login
+    navigate("/");
   };
+
+  
 
   const favoriteGames = [
     {
@@ -150,7 +155,6 @@ export default function Profile() {
                 key={i}
                 title={game.title}
                 img={game.img}
-                onClick={() => console.log("Clicked:", game.title)}
               />
             ))}
           </div>
@@ -179,7 +183,17 @@ export default function Profile() {
         </section>
       </div>
 
-      <BottomNav onNavigate={handleNavigate} />
+      {/* Logout button */}
+      <div className="px-6 mt-6 text-center">
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 px-6 py-2 rounded-full hover:bg-red-700 transition"
+        >
+          LOGOUT
+        </button>
+      </div>
+
+  <BottomNav />
     </div>
   );
 }
