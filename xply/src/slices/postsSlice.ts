@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { savePostsToDB, loadPostsFromDB, saveCommentToDB, loadCommentsFromDB } from '../../utils/indexedDB';
 
 // Definimos la estructura de un post
 export interface Post {
@@ -59,14 +60,18 @@ const gamesData = [
   { name: 'Tomb Raider', image: 'https://media.rawg.io/media/games/021/021c4e21a1824d2526f925eff6324653.jpg' },
 ];
 
-// Obtener posts de la API
+// Obtener posts de la API + posts locales
 export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
+  // Primero cargamos los posts locales de IndexedDB
+  const localPosts = await loadPostsFromDB();
+  
+  // Luego cargamos los posts de la API
   const [postsRes, usersRes] = await Promise.all([
     axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10'),
     axios.get('https://jsonplaceholder.typicode.com/users'),
   ]);
   
-  const posts: Post[] = postsRes.data.map((post: any, index: number) => {
+  const apiPosts: Post[] = postsRes.data.map((post: any, index: number) => {
     const user = usersRes.data.find((u: any) => u.id === post.userId);
     const gameData = gamesData[index % gamesData.length];
     
@@ -81,17 +86,68 @@ export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
     };
   });
   
-  return posts;
+  // Retornamos ambos: locales primero, luego API
+  return {
+    localPosts: localPosts.map((p: Post) => ({
+      ...p,
+      likedBy: p.likedBy || [],
+      images: p.images || [],
+    })),
+    apiPosts
+  };
 });
 
-// Obtener comentarios de un post
+// Obtener comentarios de un post (API + locales)
 export const fetchComments = createAsyncThunk(
   'posts/fetchComments',
   async (postId: number) => {
-    const response = await axios.get(
-      `https://jsonplaceholder.typicode.com/posts/${postId}/comments`
-    );
-    return { postId, comments: response.data };
+    // Primero cargamos comentarios locales
+    const localComments = await loadCommentsFromDB(postId);
+    
+    // Luego intentamos cargar de la API (solo para posts de la API)
+    try {
+      const response = await axios.get(
+        `https://jsonplaceholder.typicode.com/posts/${postId}/comments`
+      );
+      return { 
+        postId, 
+        comments: [...localComments, ...response.data]
+      };
+    } catch {
+      // Si falla (ej: post local), solo retornamos comentarios locales
+      return { 
+        postId, 
+        comments: localComments
+      };
+    }
+  }
+);
+
+// Agregar un comentario
+export const addComment = createAsyncThunk(
+  'posts/addComment',
+  async (commentData: { 
+    postId: number;
+    name: string;
+    email: string;
+    body: string;
+    avatar?: string; // Agregamos el avatar
+  }) => {
+    const newComment = {
+      postId: commentData.postId,
+      name: commentData.name,
+      email: commentData.email,
+      body: commentData.body,
+      avatar: commentData.avatar, // Guardamos el avatar
+    };
+    
+    // Guardar en IndexedDB
+    const commentId = await saveCommentToDB(newComment);
+    
+    return {
+      ...newComment,
+      id: commentId,
+    };
   }
 );
 
@@ -106,22 +162,20 @@ export const createPost = createAsyncThunk(
     username: string; 
     avatar: string 
   }) => {
-    const response = await axios.post('https://jsonplaceholder.typicode.com/posts', {
-      title: postData.title,
-      body: postData.body,
-      userId: postData.userId,
-    });
     
     return {
-      ...response.data,
       id: Date.now(),
+      userId: postData.userId,
       username: postData.username,
       avatar: postData.avatar,
-      images: postData.images,
+      title: postData.title || '',
+      body: postData.body || '',
+      images: postData.images || [],
       likes: 0,
       likedBy: [],
       isLocal: true,
       comments: [],
+      game: undefined, // Aseguramos que sea undefined, no null
     };
   }
 );
@@ -139,11 +193,9 @@ const postsSlice = createSlice({
       const alreadyLiked = post.likedBy.includes(userId);
 
       if (alreadyLiked) {
-        // Unlike
         post.likedBy = post.likedBy.filter(id => id !== userId);
         post.likes = Math.max(0, post.likes - 1);
       } else {
-        // Like
         post.likedBy.push(userId);
         post.likes = (post.likes || 0) + 1;
       }
@@ -157,19 +209,13 @@ const postsSlice = createSlice({
         filteredPost.likedBy = post.likedBy;
         filteredPost.likes = post.likes;
       }
-      try {
-        if (post.isLocal) {
-          const localKey = 'xply_local_posts';
-          const raw = localStorage.getItem(localKey);
-          const localPosts: Post[] = raw ? JSON.parse(raw) : [];
-          const idx = localPosts.findIndex(lp => lp.id === postId);
-          if (idx !== -1) {
-            localPosts[idx] = { ...localPosts[idx], likedBy: post.likedBy, likes: post.likes };
-            localStorage.setItem(localKey, JSON.stringify(localPosts));
-          }
-        }
-      } catch (e) {
-        console.error('Failed to update local post likes', e);
+      
+      // SOLO guardamos si el post es LOCAL
+      if (post.isLocal) {
+        const localPosts = state.posts.filter(p => p.isLocal);
+        savePostsToDB(localPosts).catch(e => 
+          console.error('Failed to update posts in IndexedDB', e)
+        );
       }
     },
     
@@ -202,49 +248,29 @@ const postsSlice = createSlice({
       })
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.loading = false;
-        // Merge local posts persisted in localStorage so created posts survive reloads
-        try {
-          const localKey = 'xply_local_posts';
-          const raw = localStorage.getItem(localKey);
-          const localPosts: Post[] = raw ? JSON.parse(raw) : [];
-    
-          const normalizedLocal = localPosts.map((p) => ({
-            ...p,
-            likedBy: p.likedBy || [],
-            images: p.images || [],
-          }));
-
-          state.posts = [...normalizedLocal, ...action.payload];
-          state.filteredPosts = [...normalizedLocal, ...action.payload];
-        } catch (e) {
-
-          console.error('Failed to load local posts', e);
-          state.posts = action.payload;
-          state.filteredPosts = action.payload;
-        }
+        
+        // Combinamos posts locales (primero) + posts de la API (después)
+        const allPosts = [...action.payload.localPosts, ...action.payload.apiPosts];
+        
+        state.posts = allPosts;
+        state.filteredPosts = allPosts;
       })
       .addCase(fetchPosts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch posts';
       })
       .addCase(createPost.fulfilled, (state, action) => {
-  
+        // Agregar el nuevo post al inicio
         state.posts.unshift(action.payload);
         if (!state.selectedGame) {
           state.filteredPosts.unshift(action.payload);
         }
 
-
-        try {
-          const localKey = 'xply_local_posts';
-          const raw = localStorage.getItem(localKey);
-          const localPosts: Post[] = raw ? JSON.parse(raw) : [];
-  
-          localPosts.unshift(action.payload);
-          localStorage.setItem(localKey, JSON.stringify(localPosts));
-        } catch (e) {
-          console.error('Failed to persist local post', e);
-        }
+        // GUARDAMOS en IndexedDB con imágenes completas
+        const localPosts = state.posts.filter(p => p.isLocal);
+        savePostsToDB(localPosts).catch(e => 
+          console.error('Failed to persist post in IndexedDB', e)
+        );
       })
       .addCase(fetchComments.fulfilled, (state, action) => {
         const { postId, comments } = action.payload;
@@ -254,6 +280,30 @@ const postsSlice = createSlice({
         }
         if (state.currentPost?.id === postId) {
           state.currentPost.comments = comments;
+        }
+      })
+      .addCase(addComment.fulfilled, (state, action) => {
+        // AGREGAR el comentario al post
+        const { postId } = action.payload;
+        
+        // Actualizar en el array de posts
+        const post = state.posts.find(p => p.id === postId);
+        if (post) {
+          post.comments = post.comments || [];
+          post.comments.push(action.payload);
+        }
+        
+        // Actualizar en currentPost
+        if (state.currentPost?.id === postId) {
+          state.currentPost.comments = state.currentPost.comments || [];
+          state.currentPost.comments.push(action.payload);
+        }
+        
+        // Actualizar en filteredPosts
+        const filteredPost = state.filteredPosts.find(p => p.id === postId);
+        if (filteredPost) {
+          filteredPost.comments = filteredPost.comments || [];
+          filteredPost.comments.push(action.payload);
         }
       });
   },

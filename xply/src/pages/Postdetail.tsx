@@ -1,231 +1,342 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { setCurrentPost, fetchComments, clearCurrentPost, fetchPosts } from "../slices/postsSlice";
-import CommentItem from "../components/CommentItem";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { savePostsToDB, loadPostsFromDB, saveCommentToDB, loadCommentsFromDB } from '../../utils/indexedDB';
 
-export default function PostDetail() {
-  const [scrollY, setScrollY] = useState(0);
-  const [hiddenStart, setHiddenStart] = useState(0);
-  const [comment, setComment] = useState("");
-  
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  
-  // Obtenemos el post actual y todos los posts
-  const currentPost = useAppSelector((state) => state.posts.currentPost);
-  const allPosts = useAppSelector((state) => state.posts.posts);
-  const loading = useAppSelector((state) => state.posts.loading);
-
-  // Primero cargamos los posts si no están cargados
-  useEffect(() => {
-    if (allPosts.length === 0 && !loading) {
-      dispatch(fetchPosts());
-    }
-  }, [allPosts.length, loading, dispatch]);
-
-  // Luego buscamos el post específico
-  useEffect(() => {
-    if (id && allPosts.length > 0) {
-  const postId = parseInt(id);
-      
-      // Buscamos el post en la lista 
-      const found = allPosts.find(p => (p.id as any) == postId);
-      if (found) {
-        dispatch(setCurrentPost(found.id));
-        // Luego cargamos los comentarios
-        dispatch(fetchComments(found.id));
-      } else {
-        console.warn('PostDetail: post no encontrado en allPosts', postId);
-      }
-    }
-
-    return () => {
-      dispatch(clearCurrentPost());
-    };
-  }, [id, allPosts.length, dispatch]);
-
-  useEffect(() => {
-    const computeHidden = () => {
-      setHiddenStart(Math.round(window.innerHeight * 0.65));
-    };
-    computeHidden();
-    window.addEventListener("resize", computeHidden);
-
-    const onScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", onScroll);
-
-    return () => {
-      window.removeEventListener("resize", computeHidden);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
-  const translateY = Math.max(hiddenStart - scrollY, 0);
-
-  const handleSendComment = () => {
-    if (comment.trim()) {
-      setComment("");
-    }
-  };
-
-  // Si no hay posts cargados aún, mostramos loading
-  if (allPosts.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#0B0821] flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mb-4"></div>
-        <p className="text-gray-400">Loading posts...</p>
-        <p className="text-xs text-gray-500 mt-2">
-          Posts en Redux: {allPosts.length} | Loading: {loading ? 'Yes' : 'No'}
-        </p>
-      </div>
-    );
-  }
-
-  // Si no encontramos el post, mostramos error con más info
-  if (!currentPost) {
-    return (
-      <div className="min-h-screen bg-[#0B0821] flex flex-col items-center justify-center text-white p-6">
-        <span className="material-symbols-outlined text-6xl text-red-500 mb-4">
-          error
-        </span>
-        <h2 className="text-2xl font-bold mb-2">Post not found</h2>
-        <p className="text-gray-400 mb-2">The post you're looking for doesn't exist</p>
-        <div className="bg-white/5 p-4 rounded-lg mb-6 text-sm text-left">
-          <p className="text-gray-300">Debug info:</p>
-          <p className="text-xs text-gray-400">ID buscado: {id}</p>
-          <p className="text-xs text-gray-400">Posts disponibles: {allPosts.map(p => p.id).join(', ')}</p>
-          <p className="text-xs text-gray-400">Total posts: {allPosts.length}</p>
-        </div>
-        <button
-          onClick={() => navigate("/feed")}
-          className="bg-pink-600 px-6 py-3 rounded-full hover:bg-pink-700 transition"
-        >
-          Back to Feed
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-[#0B0821] text-white relative">
-      {/* IMAGEN PRINCIPAL */}
-      <div className="relative w-full h-screen overflow-hidden">
-        <img
-          src={currentPost.images[0]}
-          alt="Post"
-          className="w-full h-full object-cover"
-        />
-
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0821]/95 via-transparent to-transparent" />
-
-        {/* botón back */}
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute left-4 top-6 z-20 text-white text-2xl hover:text-pink-500 transition"
-          aria-label="back"
-        >
-          ←
-        </button>
-
-        {/* INFO sobre la imagen */}
-        <div className="absolute left-6 right-6 bottom-10 z-20">
-          <p
-            className="text-pink-500 text-sm mb-2"
-            style={{ fontFamily: "Orkney, sans-serif" }}
-          >
-            @{currentPost.username}
-          </p>
-
-          <h1 className="text-2xl font-bold mb-2 line-clamp-2">
-            {currentPost.title}
-          </h1>
-
-
-        </div>
-      </div>
-
-      {/* CAJA DE COMENTARIOS */}
-      <div
-        className="fixed left-0 right-0 bottom-0 z-30"
-        style={{
-          transform: `translateY(${translateY}px)`,
-          transition: "transform 220ms cubic-bezier(.2,.9,.2,1)",
-        }}
-      >
-        <div className="mx-4 mb-4 bg-[#181434]/95 backdrop-blur-xl rounded-t-3xl shadow-lg overflow-hidden">
-          {/* contenido scrollable */}
-          <div className="px-6 pt-6 pb-28 max-h-[55vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <span
-                className="text-sm font-semibold"
-                style={{ fontFamily: "Orkney, sans-serif" }}
-              >
-                {currentPost.comments?.length || 0} COMMENTS
-              </span>
-              <span
-                className="text-pink-500 font-semibold"
-                style={{ fontFamily: "Orkney, sans-serif" }}
-              >
-                {currentPost.likes} ♥
-              </span>
-            </div>
-
-            {/* Caption del post */}
-            <div className="bg-white/5 rounded-xl p-4 mb-6">
-              <p className="text-gray-300 text-sm leading-relaxed">
-                {currentPost.body}
-              </p>
-            </div>
-
-            {/* Loading state de comentarios */}
-            {!currentPost.comments && (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-              </div>
-            )}
-
-            {/* lista de comentarios */}
-            <div className="space-y-5">
-              {currentPost.comments?.map((c) => (
-                <CommentItem
-                  key={c.id}
-                  user={c.name}
-                  avatar={`https://i.pravatar.cc/100?img=${c.id}`}
-                  time="Just now"
-                  text={c.body}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Input */}
-          <div className="relative">
-            <div className="px-4 pb-4 pt-2">
-              <div className="bg-gradient-to-r from-[#131230] to-[#702A4C] rounded-full p-2 flex items-center gap-3">
-                <input
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendComment()}
-                  aria-label="write a comment"
-                  className="flex-1 bg-transparent outline-none text-white placeholder-gray-300 px-3 py-2 text-sm"
-                  placeholder="Write a comment..."
-                />
-                <button
-                  onClick={handleSendComment}
-                  className="bg-white/10 px-4 py-2 rounded-full text-white font-semibold hover:bg-white/20 transition"
-                  aria-label="send"
-                >
-                  ➤
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ height: "120vh" }} />
-    </div>
-  );
+// Definimos la estructura de un post
+export interface Post {
+  id: number;
+  userId: number;
+  username: string;
+  avatar: string;
+  title: string;
+  body: string;
+  images: string[];
+  likes: number;
+  likedBy?: number[];
+  isLocal?: boolean;
+  comments?: Comment[];
+  game?: string;
 }
+
+export interface Comment {
+  id: number;
+  postId: number;
+  name: string;
+  email: string;
+  body: string;
+  avatar?: string;
+}
+
+interface PostsState {
+  posts: Post[];
+  filteredPosts: Post[];
+  selectedGame: string | null;
+  loading: boolean;
+  error: string | null;
+  currentPost: Post | null;
+}
+
+const initialState: PostsState = {
+  posts: [],
+  filteredPosts: [],
+  selectedGame: null,
+  loading: false,
+  error: null,
+  currentPost: null,
+};
+
+// Array de juegos con sus imágenes
+const gamesData = [
+  { name: 'GTA V', image: 'https://media.rawg.io/media/games/456/456dea5e1c7e3cd07060c14e96612001.jpg' },
+  { name: 'GTA V', image: 'https://media.rawg.io/media/games/20a/20aa03a10cda45239fe22d035c0ebe64.jpg' },
+  { name: 'Alan Wake', image: 'https://media.rawg.io/media/games/5c0/5c0dd63002cb23f804aab327d40ef119.jpg' },
+  { name: 'BioShock infinite', image: 'https://media.rawg.io/media/games/fc1/fc1307a2774506b5bd65d7e8424664a7.jpg' },
+  { name: 'Horizon Zero Dawn', image: 'https://media.rawg.io/media/games/b7d/b7d3f1715fa8381a4e780173a197a615.jpg' },
+  { name: 'Fallout 4', image: 'https://media.rawg.io/media/games/d82/d82990b9c67ba0d2d09d4e6fa88885a7.jpg' },
+  { name: 'Skyrim', image: 'https://media.rawg.io/media/games/7cf/7cfc9220b401b7a300e409e539c9afd5.jpg' },
+  { name: 'The Witcher 3', image: 'https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6bcdbc.jpg' },
+  { name: 'Rocket League', image: 'https://media.rawg.io/media/games/8cc/8cce7c0e99dcc43d66c8efd42f9d03e3.jpg' },
+  { name: 'Tomb Raider', image: 'https://media.rawg.io/media/games/021/021c4e21a1824d2526f925eff6324653.jpg' },
+];
+
+// Obtener posts de la API + posts locales
+export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
+  // Primero cargamos los posts locales de IndexedDB
+  const localPosts = await loadPostsFromDB();
+  
+  // Luego cargamos los posts de la API
+  const [postsRes, usersRes] = await Promise.all([
+    axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10'),
+    axios.get('https://jsonplaceholder.typicode.com/users'),
+  ]);
+  
+  const apiPosts: Post[] = postsRes.data.map((post: any, index: number) => {
+    const user = usersRes.data.find((u: any) => u.id === post.userId);
+    const gameData = gamesData[index % gamesData.length];
+    
+    return {
+      ...post,
+      username: user?.username || 'Unknown',
+      avatar: `https://i.pravatar.cc/100?img=${post.userId}`,
+      images: [gameData.image],
+      likes: Math.floor(Math.random() * 10000),
+      likedBy: [],
+      game: gameData.name,
+    };
+  });
+  
+  // Retornamos ambos: locales primero, luego API
+  return {
+    localPosts: localPosts.map((p: Post) => ({
+      ...p,
+      likedBy: p.likedBy || [],
+      images: p.images || [],
+    })),
+    apiPosts
+  };
+});
+
+// Obtener comentarios de un post (API + locales)
+export const fetchComments = createAsyncThunk(
+  'posts/fetchComments',
+  async (postId: number) => {
+    // Primero cargamos comentarios locales
+    const localComments = await loadCommentsFromDB(postId);
+    
+    // Luego intentamos cargar de la API 
+    try {
+      const response = await axios.get(
+        `https://jsonplaceholder.typicode.com/posts/${postId}/comments`
+      );
+      return { 
+        postId, 
+        comments: [...localComments, ...response.data]
+      };
+    } catch {
+      // Si falla , solo retornamos comentarios locales
+      return { 
+        postId, 
+        comments: localComments
+      };
+    }
+  }
+);
+
+// Agregar un comentario
+export const addComment = createAsyncThunk(
+  'posts/addComment',
+  async (commentData: { 
+    postId: number;
+    name: string;
+    email: string;
+    body: string;
+    avatar?: string; // Agregamos el avatar
+  }) => {
+    const newComment = {
+      postId: commentData.postId,
+      name: commentData.name,
+      email: commentData.email,
+      body: commentData.body,
+      avatar: commentData.avatar, // Guardamos el avatar
+    };
+    
+    // Guardar en IndexedDB
+    const commentId = await saveCommentToDB(newComment);
+    
+    return {
+      ...newComment,
+      id: commentId,
+    };
+  }
+);
+
+// Crear un nuevo post
+export const createPost = createAsyncThunk(
+  'posts/createPost',
+  async (postData: { 
+    title: string; 
+    body: string; 
+    images: string[]; 
+    userId: number; 
+    username: string; 
+    avatar: string 
+  }) => {
+    // Simulamos la llamada a la API pero no usamos la respuesta
+    await axios.post('https://jsonplaceholder.typicode.com/posts', {
+      title: postData.title,
+      body: postData.body,
+      userId: postData.userId,
+    });
+    
+    return {
+      id: Date.now(),
+      userId: postData.userId,
+      username: postData.username,
+      avatar: postData.avatar,
+      title: postData.title || '',
+      body: postData.body || '',
+      images: postData.images || [],
+      likes: 0,
+      likedBy: [],
+      isLocal: true,
+      comments: [],
+      game: undefined, // Aseguramos que sea undefined, no null
+    };
+  }
+);
+
+const postsSlice = createSlice({
+  name: 'posts',
+  initialState,
+  reducers: {
+    likePost: (state, action: PayloadAction<{ postId: number; userId: number }>) => {
+      const { postId, userId } = action.payload;
+      const post = state.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      post.likedBy = post.likedBy || [];
+      const alreadyLiked = post.likedBy.includes(userId);
+
+      if (alreadyLiked) {
+        post.likedBy = post.likedBy.filter(id => id !== userId);
+        post.likes = Math.max(0, post.likes - 1);
+      } else {
+        post.likedBy.push(userId);
+        post.likes = (post.likes || 0) + 1;
+      }
+
+      if (state.currentPost?.id === postId) {
+        state.currentPost.likedBy = post.likedBy;
+        state.currentPost.likes = post.likes;
+      }
+      const filteredPost = state.filteredPosts.find(p => p.id === postId);
+      if (filteredPost) {
+        filteredPost.likedBy = post.likedBy;
+        filteredPost.likes = post.likes;
+      }
+      
+      // SOLO guardamos si el post es LOCAL y creamos una copia limpia
+      if (post.isLocal) {
+        const localPosts = state.posts
+          .filter(p => p.isLocal)
+          .map(p => ({
+            id: p.id,
+            userId: p.userId,
+            username: p.username,
+            avatar: p.avatar,
+            title: p.title,
+            body: p.body,
+            images: [...(p.images || [])],
+            likes: p.likes,
+            likedBy: [...(p.likedBy || [])],
+            isLocal: true,
+            comments: (p.comments || []).map(c => ({
+              id: c.id,
+              postId: c.postId,
+              name: c.name,
+              email: c.email,
+              body: c.body,
+              avatar: c.avatar,
+            })),
+            game: p.game,
+          }));
+        
+        savePostsToDB(localPosts).catch(e => 
+          console.error('Failed to update posts in IndexedDB', e)
+        );
+      }
+    },
+    
+    setCurrentPost: (state, action: PayloadAction<number>) => {
+      const post = state.posts.find(p => p.id === action.payload);
+      state.currentPost = post || null;
+    },
+    
+    clearCurrentPost: (state) => {
+      state.currentPost = null;
+    },
+    
+    filterByGame: (state, action: PayloadAction<string | null>) => {
+      state.selectedGame = action.payload;
+      
+      if (!action.payload) {
+        state.filteredPosts = state.posts;
+      } else {
+        state.filteredPosts = state.posts.filter(
+          post => post.game === action.payload
+        );
+      }
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchPosts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.loading = false;
+        
+        // Combinamos posts locales (primero) + posts de la API (después)
+        const allPosts = [...action.payload.localPosts, ...action.payload.apiPosts];
+        
+        state.posts = allPosts;
+        state.filteredPosts = allPosts;
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch posts';
+      })
+      .addCase(createPost.fulfilled, (state, action) => {
+        // Agregar el nuevo post al inicio
+        state.posts.unshift(action.payload);
+        if (!state.selectedGame) {
+          state.filteredPosts.unshift(action.payload);
+        }
+
+        // GUARDAMOS en IndexedDB con imágenes completas
+        const localPosts = state.posts.filter(p => p.isLocal);
+        savePostsToDB(localPosts).catch(e => 
+          console.error('Failed to persist post in IndexedDB', e)
+        );
+      })
+      .addCase(fetchComments.fulfilled, (state, action) => {
+        const { postId, comments } = action.payload;
+        const post = state.posts.find(p => p.id === postId);
+        if (post) {
+          post.comments = comments;
+        }
+        if (state.currentPost?.id === postId) {
+          state.currentPost.comments = comments;
+        }
+      })
+      .addCase(addComment.fulfilled, (state, action) => {
+        // AGREGAR el comentario al post
+        const { postId } = action.payload;
+        
+        // Actualizar en el array de posts
+        const post = state.posts.find(p => p.id === postId);
+        if (post) {
+          post.comments = post.comments || [];
+          post.comments.push(action.payload);
+        }
+        
+        // Actualizar en currentPost
+        if (state.currentPost?.id === postId) {
+          state.currentPost.comments = state.currentPost.comments || [];
+          state.currentPost.comments.push(action.payload);
+        }
+        
+        // Actualizar en filteredPosts
+        const filteredPost = state.filteredPosts.find(p => p.id === postId);
+        if (filteredPost) {
+          filteredPost.comments = filteredPost.comments || [];
+          filteredPost.comments.push(action.payload);
+        }
+      });
+  },
+});
+
+export const { likePost, setCurrentPost, clearCurrentPost, filterByGame } = postsSlice.actions;
+export default postsSlice.reducer;
