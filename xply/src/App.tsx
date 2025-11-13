@@ -4,7 +4,7 @@ import { useLocation, Routes, Route } from 'react-router-dom';
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Feed from "./pages/feed";
-import PostDetail from "./pages/PostDetail";
+import PostDetail from "./pages/Postdetail";
 import CreatePost from "./pages/CreatePost";
 import Profile from "./pages/Profile";
 
