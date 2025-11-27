@@ -1,4 +1,4 @@
-// src/slices/postsSlice.ts
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { supabase, type Post } from '../supabaseClient';

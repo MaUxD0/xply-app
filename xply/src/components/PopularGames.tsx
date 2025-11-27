@@ -85,7 +85,7 @@ export default function PopularGames() {
                     </span>
                   </div>
                 )}
-                {/* Game title badge at bottom of each card */}
+                
                 <div className="absolute left-0 right-0 bottom-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent px-3 py-2">
                   <p className="text-sm text-white font-semibold truncate text-center">{game.title}</p>
                 </div>
@@ -97,5 +97,4 @@ export default function PopularGames() {
     </div>
   );
 }
-
 

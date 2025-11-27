@@ -1,4 +1,4 @@
-// src/pages/feed.tsx
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -54,12 +54,11 @@ export default function Feed() {
       </header>
 
       <main className="mt-8 pb-24">
-        {/* Contenedor centrado con ancho máximo */}
         <div className="max-w-2xl mx-auto px-4 space-y-10">
           {selectedGame && (
             <div className="bg-pink-600/20 border border-pink-600/50 rounded-2xl p-4 text-center">
               <p className="text-pink-200 text-sm">
-                Showing filtered posts
+                Showing posts for: <strong>{selectedGame}</strong>
               </p>
               <p className="text-xs text-gray-400 mt-1">
                 {filteredPosts.length} {filteredPosts.length === 1 ? 'post' : 'posts'} found
@@ -107,7 +106,7 @@ export default function Feed() {
               </span>
               <p className="text-xl mb-2">No posts found</p>
               {selectedGame ? (
-                <p className="text-sm">No posts match this filter yet</p>
+                <p className="text-sm">No posts for "{selectedGame}" yet. Be the first!</p>
               ) : (
                 <p className="text-sm">Be the first to create one!</p>
               )}

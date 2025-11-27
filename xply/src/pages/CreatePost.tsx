@@ -1,4 +1,3 @@
-// src/pages/CreatePost.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -11,6 +10,7 @@ export default function CreatePost() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [caption, setCaption] = useState("");
+  const [gameName, setGameName] = useState(""); // Campo libre para el juego
   const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
@@ -23,7 +23,6 @@ export default function CreatePost() {
     const newFiles = Array.from(files);
     setImageFiles((prev) => [...prev, ...newFiles]);
 
-    // Crear previews
     newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onload = () => {
@@ -67,7 +66,7 @@ export default function CreatePost() {
         title: selectedTags.join(" "),
         body: caption,
         images: imageFiles,
-        game: selectedTags[0]?.replace("#", "") || undefined,
+        game: gameName.trim() || undefined, // Enviar el juego si escribió algo
       })).unwrap();
       
       navigate("/feed");
@@ -111,6 +110,24 @@ export default function CreatePost() {
             </button>
           </div>
         ))}
+      </div>
+
+      {/* Campo de juego (OPCIONAL) */}
+      <div className="mb-8">
+        <p className="flex items-center gap-2 text-[#FF0099] mb-3">
+          <span className="material-symbols-outlined text-lg">sports_esports</span> 
+          Game (optional)
+        </p>
+        <input
+          type="text"
+          value={gameName}
+          onChange={(e) => setGameName(e.target.value)}
+          placeholder="e.g., Skyrim, GTA V, The Witcher 3..."
+          className="w-full p-3 rounded-xl bg-gradient-to-r from-[#702A4C] to-[#090619] text-white placeholder-gray-400 outline-none border border-[#FF0099]/30 focus:border-[#FF0099] transition"
+        />
+        <p className="text-xs text-gray-400 mt-2">
+          Add a game name to help others find your post
+        </p>
       </div>
       
       {/* Hashtags */}
@@ -157,4 +174,3 @@ export default function CreatePost() {
     </div>
   );
 }
-
