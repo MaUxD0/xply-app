@@ -1,3 +1,4 @@
+// src/pages/Postdetail.tsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -13,32 +14,25 @@ export default function PostDetail() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   
-  // Obtenemos el post actual, todos los posts y el usuario actual
   const currentPost = useAppSelector((state) => state.posts.currentPost);
   const allPosts = useAppSelector((state) => state.posts.posts);
   const loading = useAppSelector((state) => state.posts.loading);
   const user = useAppSelector((state) => state.auth.user);
 
-  // Primero cargamos los posts si no están cargados
   useEffect(() => {
     if (allPosts.length === 0 && !loading) {
       dispatch(fetchPosts());
     }
   }, [allPosts.length, loading, dispatch]);
 
-  // Luego buscamos el post específico
   useEffect(() => {
     if (id && allPosts.length > 0) {
-  const postId = parseInt(id);
+      const postId = parseInt(id);
+      const found = allPosts.find(p => p.id === postId);
       
-      // Buscamos el post en la lista 
-      const found = allPosts.find(p => (p.id as any) == postId);
       if (found) {
         dispatch(setCurrentPost(found.id));
-        // Luego cargamos los comentarios
         dispatch(fetchComments(found.id));
-      } else {
-        console.warn('PostDetail: post no encontrado en allPosts', postId);
       }
     }
 
@@ -65,7 +59,7 @@ export default function PostDetail() {
 
   const translateY = Math.max(hiddenStart - scrollY, 0);
 
-  const handleSendComment = () => {
+  const handleSendComment = async () => {
     if (!comment.trim()) return;
     
     if (!user || !currentPost) {
@@ -73,32 +67,27 @@ export default function PostDetail() {
       return;
     }
 
-    // Despachamos la acción para agregar el comentario
-    dispatch(addComment({
-      postId: currentPost.id,
-      userName: user.username,
-      userAvatar: user.avatar,
-      body: comment,
-    }));
+    try {
+      await dispatch(addComment({
+        postId: currentPost.id,
+        body: comment,
+      })).unwrap();
 
-    // Limpiamos el input
-    setComment("");
+      setComment("");
+    } catch (error: any) {
+      alert(error.message || 'Failed to add comment');
+    }
   };
 
-  // Si no hay posts cargados aún, mostramos loading
   if (allPosts.length === 0) {
     return (
       <div className="min-h-screen bg-[#0B0821] flex flex-col items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mb-4"></div>
         <p className="text-gray-400">Loading posts...</p>
-        <p className="text-xs text-gray-500 mt-2">
-          Posts en Redux: {allPosts.length} | Loading: {loading ? 'Yes' : 'No'}
-        </p>
       </div>
     );
   }
 
-  // Si no encontramos el post, mostramos error con más info
   if (!currentPost) {
     return (
       <div className="min-h-screen bg-[#0B0821] flex flex-col items-center justify-center text-white p-6">
@@ -106,13 +95,7 @@ export default function PostDetail() {
           error
         </span>
         <h2 className="text-2xl font-bold mb-2">Post not found</h2>
-        <p className="text-gray-400 mb-2">The post you're looking for doesn't exist</p>
-        <div className="bg-white/5 p-4 rounded-lg mb-6 text-sm text-left">
-          <p className="text-gray-300">Debug info:</p>
-          <p className="text-xs text-gray-400">ID buscado: {id}</p>
-          <p className="text-xs text-gray-400">Posts disponibles: {allPosts.map(p => p.id).join(', ')}</p>
-          <p className="text-xs text-gray-400">Total posts: {allPosts.length}</p>
-        </div>
+        <p className="text-gray-400 mb-6">The post you're looking for doesn't exist</p>
         <button
           onClick={() => navigate("/feed")}
           className="bg-pink-600 px-6 py-3 rounded-full hover:bg-pink-700 transition"
@@ -125,7 +108,7 @@ export default function PostDetail() {
 
   return (
     <div className="min-h-screen bg-[#0B0821] text-white relative">
-      {/* IMAGEN PRINCIPAL */}
+      {/* MAIN IMAGE */}
       <div className="relative w-full h-screen overflow-hidden">
         <img
           src={currentPost.images[0]}
@@ -135,7 +118,7 @@ export default function PostDetail() {
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0821]/95 via-transparent to-transparent" />
 
-        {/* botón back */}
+        {/* Back button */}
         <button
           onClick={() => navigate(-1)}
           className="absolute left-4 top-6 z-20 text-white text-2xl hover:text-pink-500 transition"
@@ -144,7 +127,7 @@ export default function PostDetail() {
           ←
         </button>
 
-        {/* INFO sobre la imagen */}
+        {/* Info over image */}
         <div className="absolute left-6 right-6 bottom-10 z-20">
           <p
             className="text-pink-500 text-sm mb-2"
@@ -156,12 +139,10 @@ export default function PostDetail() {
           <h1 className="text-2xl font-bold mb-2 line-clamp-2">
             {currentPost.title}
           </h1>
-
-
         </div>
       </div>
 
-      {/* CAJA DE COMENTARIOS */}
+      {/* COMMENTS BOX */}
       <div
         className="fixed left-0 right-0 bottom-0 z-30"
         style={{
@@ -170,14 +151,13 @@ export default function PostDetail() {
         }}
       >
         <div className="mx-4 mb-4 bg-[#181434]/95 backdrop-blur-xl rounded-t-3xl shadow-lg overflow-hidden">
-          {/* contenido scrollable */}
           <div className="px-6 pt-6 pb-28 max-h-[55vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <span
                 className="text-sm font-semibold"
                 style={{ fontFamily: "Orkney, sans-serif" }}
               >
-                {currentPost.comments?.length || 0} COMMENTS
+                {(currentPost as any).comments?.length || 0} COMMENTS
               </span>
               <span
                 className="text-pink-500 font-semibold"
@@ -187,27 +167,20 @@ export default function PostDetail() {
               </span>
             </div>
 
-            {/* Caption del post */}
+            {/* Post caption */}
             <div className="bg-white/5 rounded-xl p-4 mb-6">
               <p className="text-gray-300 text-sm leading-relaxed">
                 {currentPost.body}
               </p>
             </div>
 
-            {/* Loading state de comentarios */}
-            {!currentPost.comments && (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-              </div>
-            )}
-
-            {/* lista de comentarios */}
+            {/* Comments list */}
             <div className="space-y-5">
-              {currentPost.comments?.map((c) => (
+              {(currentPost as any).comments?.map((c: any) => (
                 <CommentItem
                   key={c.id}
-                  user={c.userName}
-                  avatar={c.userAvatar || `https://i.pravatar.cc/100?img=${c.id}`}
+                  user={`@${c.username}`}
+                  avatar={c.avatar_url || `https://i.pravatar.cc/100?img=${c.id}`}
                   time="Just now"
                   text={c.body}
                 />

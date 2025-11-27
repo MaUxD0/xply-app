@@ -1,7 +1,8 @@
+// src/pages/feed.tsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { fetchPosts, likePost } from "../slices/postsSlice";
+import { fetchPosts, toggleLike } from "../slices/postsSlice";
 import BottomNav from "../components/BottomNav";
 import PopularGames from "../components/PopularGames";
 import PostCard from "../components/PostCard";
@@ -27,12 +28,17 @@ export default function Feed() {
     navigate(`/post/${id}`);
   };
 
-  const handleLike = (postId: number) => {
+  const handleLike = async (postId: number) => {
     if (!user) {
       alert('You must be logged in to like posts');
       return;
     }
-    dispatch(likePost({ postId, userId: user.id }));
+    
+    try {
+      await dispatch(toggleLike(postId)).unwrap();
+    } catch (error: any) {
+      alert(error.message || 'Failed to like post');
+    }
   };
 
   return (
@@ -47,64 +53,67 @@ export default function Feed() {
         </section>
       </header>
 
-      <main className="mt-8 space-y-10 px-4 pb-24">
-        {selectedGame && (
-          <div className="bg-pink-600/20 border border-pink-600/50 rounded-2xl p-4 text-center">
-            <p className="text-pink-200 text-sm">
-              Showing filtered posts
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              {filteredPosts.length} {filteredPosts.length === 1 ? 'post' : 'posts'} found
-            </p>
-          </div>
-        )}
+      <main className="mt-8 pb-24">
+        {/* Contenedor centrado con ancho máximo */}
+        <div className="max-w-2xl mx-auto px-4 space-y-10">
+          {selectedGame && (
+            <div className="bg-pink-600/20 border border-pink-600/50 rounded-2xl p-4 text-center">
+              <p className="text-pink-200 text-sm">
+                Showing filtered posts
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {filteredPosts.length} {filteredPosts.length === 1 ? 'post' : 'posts'} found
+              </p>
+            </div>
+          )}
 
-        {loading && (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
-          </div>
-        )}
+          {loading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+            </div>
+          )}
 
-        {error && (
-          <div className="text-center py-10">
-            <p className="text-red-400 mb-4">{error}</p>
-            <button
-              onClick={() => dispatch(fetchPosts())}
-              className="bg-pink-600 px-6 py-2 rounded-full hover:bg-pink-700 transition"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+          {error && (
+            <div className="text-center py-10">
+              <p className="text-red-400 mb-4">{error}</p>
+              <button
+                onClick={() => dispatch(fetchPosts())}
+                className="bg-pink-600 px-6 py-2 rounded-full hover:bg-pink-700 transition"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
-        {!loading && !error && filteredPosts.map((post) => (
-          <PostCard
-            key={post.id}
-            id={post.id}
-            username={post.username}
-            avatar={post.avatar}
-            caption={post.body}
-            likes={post.likes}
-            isLiked={!!(user && post.likedBy && post.likedBy.includes(user.id))}
-            images={post.images}
-            onPostClick={handlePostClick}
-            onLike={() => handleLike(post.id)}
-          />
-        ))}
+          {!loading && !error && filteredPosts.map((post) => (
+            <PostCard
+              key={post.id}
+              id={post.id}
+              username={post.username}
+              avatar={post.avatar_url || `https://i.pravatar.cc/100?img=${post.user_id}`}
+              caption={post.body}
+              likes={post.likes}
+              isLiked={post.has_liked}
+              images={post.images}
+              onPostClick={handlePostClick}
+              onLike={() => handleLike(post.id)}
+            />
+          ))}
 
-        {!loading && !error && filteredPosts.length === 0 && (
-          <div className="text-center py-20 text-gray-400">
-            <span className="material-symbols-outlined text-6xl mb-4 block">
-              videogame_asset_off
-            </span>
-            <p className="text-xl mb-2">No posts found</p>
-            {selectedGame ? (
-              <p className="text-sm">No posts match this filter yet</p>
-            ) : (
-              <p className="text-sm">Be the first to create one!</p>
-            )}
-          </div>
-        )}
+          {!loading && !error && filteredPosts.length === 0 && (
+            <div className="text-center py-20 text-gray-400">
+              <span className="material-symbols-outlined text-6xl mb-4 block">
+                videogame_asset_off
+              </span>
+              <p className="text-xl mb-2">No posts found</p>
+              {selectedGame ? (
+                <p className="text-sm">No posts match this filter yet</p>
+              ) : (
+                <p className="text-sm">Be the first to create one!</p>
+              )}
+            </div>
+          )}
+        </div>
       </main>
 
       <BottomNav />

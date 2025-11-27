@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -7,46 +8,31 @@ import FormField from "../components/FormField";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, rehydrated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, rehydrated, loading, error } = useAppSelector((state) => state.auth);
 
-  // Si ya está autenticado y ya rehidratamos el estado inicial, redirige al feed
   useEffect(() => {
     if (isAuthenticated && rehydrated) {
       navigate("/feed");
     }
   }, [isAuthenticated, rehydrated, navigate]);
 
-  const handleLogin = (e: React.MouseEvent) => {
+  const handleLogin = async (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Validación básica
     if (!email || !password) {
-      setError("Please fill in all fields");
+      alert("Please fill in all fields");
       return;
     }
-    
-    if (!email.includes("@")) {
-      setError("Please enter a valid email");
-      return;
+
+    try {
+      await dispatch(login({ email, password })).unwrap();
+      // La navegación se hará automáticamente por el useEffect
+    } catch (err: any) {
+      alert(err.message || "Login failed");
     }
-    
-    // Simulamos un login exitoso
-    const user = {
-      id: Math.floor(Math.random() * 100),
-      email,
-      username: email.split("@")[0],
-      avatar: `https://i.pravatar.cc/300?img=${Math.floor(Math.random() * 70)}`,
-    };
-    
-    // Despachamos la acción de login
-    dispatch(login(user));
-    
-    // React Router se encarga de la navegación automáticamente
-    // gracias al useEffect de arriba
   };
 
   const handleRegister = () => {
@@ -64,28 +50,23 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Título */}
         <h2 className="text-white font-['Anurati'] text-xl mb-6 tracking-widest">
           LOGIN
         </h2>
 
-        {/* Mensaje de error */}
+        {/* Error message */}
         {error && (
           <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
             {error}
           </div>
         )}
 
-        {/* Campos del formulario */}
         <FormField
           type="email"
           placeholder="Email ID"
           icon="mail"
           value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            setError("");
-          }}
+          onChange={(e) => setEmail(e.target.value)}
         />
 
         <FormField
@@ -93,24 +74,28 @@ export default function Login() {
           placeholder="Password"
           icon="lock"
           value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            setError("");
-          }}
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        {/* Botón de Login */}
         <button
           onClick={handleLogin}
-          className="w-full py-2 rounded-full text-white font-semibold bg-gradient-to-r from-[#090619] to-[#702A4C] hover:opacity-90 transition mb-3"
+          disabled={loading}
+          className="w-full py-2 rounded-full text-white font-semibold bg-gradient-to-r from-[#090619] to-[#702A4C] hover:opacity-90 transition mb-3 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          LOGIN
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Loading...
+            </>
+          ) : (
+            "LOGIN"
+          )}
         </button>
 
-        {/* Botón de Register */}
         <button
           onClick={handleRegister}
-          className="w-full py-2 rounded-full text-white font-semibold bg-[#2B1A40] hover:opacity-80 transition"
+          disabled={loading}
+          className="w-full py-2 rounded-full text-white font-semibold bg-[#2B1A40] hover:opacity-80 transition disabled:opacity-50"
         >
           REGISTER
         </button>

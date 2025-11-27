@@ -1,13 +1,14 @@
+// src/pages/CreatePost.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { createPost } from "../slices/postsSlice";
 import ImageUploadButton from "../components/ImageUploadButton";
-import ImagePreview from "../components/ImagePreview";
 import TagSelector from "../components/TagSelector";
 
 export default function CreatePost() {
-  const [images, setImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [caption, setCaption] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,25 +20,22 @@ export default function CreatePost() {
   const tags = ["#gameplay", "#skyrim", "#challenge", "#adventure", "#rpg"];
 
   const handleImageSelect = (files: FileList) => {
-    const readFile = (file: File): Promise<string> =>
-      new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+    const newFiles = Array.from(files);
+    setImageFiles((prev) => [...prev, ...newFiles]);
 
-    Promise.all(Array.from(files).map(readFile))
-      .then((dataUrls) => setImages((prev) => [...prev, ...dataUrls]))
-      .catch((err) => {
-
-        console.error('Failed to read image files', err);
-        alert('Failed to read image files. Please try again.');
-      });
+    // Crear previews
+    newFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
-  const handleRemoveImage = (url: string) => {
-    setImages(images.filter((img) => img !== url));
+  const handleRemoveImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const toggleTag = (tag: string) => {
@@ -47,8 +45,7 @@ export default function CreatePost() {
   };
 
   const handleUpload = async () => {
-    // Validación
-    if (images.length === 0) {
+    if (imageFiles.length === 0) {
       alert("Please add at least one image");
       return;
     }
@@ -66,21 +63,17 @@ export default function CreatePost() {
     setLoading(true);
 
     try {
-      // Creamos el post con la acción async
       await dispatch(createPost({
         title: selectedTags.join(" "),
         body: caption,
-        images,
-        userId: user.id,
-        username: user.username,
-        avatar: user.avatar,
+        images: imageFiles,
+        game: selectedTags[0]?.replace("#", "") || undefined,
       })).unwrap();
       
-      // Navegamos al feed
       navigate("/feed");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create post:", error);
-      alert("Failed to create post. Please try again.");
+      alert(error.message || "Failed to create post. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -92,7 +85,6 @@ export default function CreatePost() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#090619] to-[#702A4C] text-white font-['Orkney'] p-6">
-      {/* Título */}
       <h1 className="font-['Anurati'] text-3xl text-center mt-6 mb-2">
         CREATE A POST
       </h1>
@@ -102,7 +94,23 @@ export default function CreatePost() {
       {/* Upload y preview */}
       <div className="flex items-start justify-center gap-6 mb-8 overflow-x-auto flex-nowrap">
         <ImageUploadButton onImageSelect={handleImageSelect} />
-        <ImagePreview images={images} onRemove={handleRemoveImage} />
+        
+        {imagePreviews.map((preview, index) => (
+          <div key={index} className="relative flex-shrink-0">
+            <img
+              src={preview}
+              alt={`Preview ${index + 1}`}
+              className="w-36 h-36 object-cover rounded-2xl"
+            />
+            <button
+              onClick={() => handleRemoveImage(index)}
+              className="absolute top-2 right-2 bg-pink-600 rounded-full w-6 h-6 flex items-center justify-center text-white text-sm hover:bg-pink-700 transition"
+              aria-label="Remove image"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
       </div>
       
       {/* Hashtags */}
@@ -112,7 +120,7 @@ export default function CreatePost() {
         onTagToggle={toggleTag}
       />
 
-      {/* Área de texto */}
+      {/* Text area */}
       <textarea
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
@@ -121,7 +129,7 @@ export default function CreatePost() {
         rows={4}
       />
 
-      {/* Botones */}
+      {/* Buttons */}
       <div className="flex justify-between mt-8">
         <button
           onClick={handleCancel}

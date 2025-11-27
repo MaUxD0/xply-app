@@ -1,5 +1,4 @@
-
-
+// src/components/CommentItem.tsx
 interface CommentItemProps {
   user: string;
   avatar: string;
@@ -17,7 +16,7 @@ export default function CommentItem({ user, avatar, time, text }: CommentItemPro
       />
       <div className="flex-1">
         <div className="flex justify-between items-center text-xs text-gray-400">
-          <span style={{ fontFamily: "Orkney, sans-serif" }}>
+          <span style={{ fontFamily: "Orkney, sans-serif" }} className="font-semibold text-pink-400">
             {user}
           </span>
           <span className="text-right">{time}</span>
