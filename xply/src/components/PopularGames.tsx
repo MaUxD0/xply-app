@@ -50,27 +50,44 @@ export default function PopularGames() {
           effect="coverflow"
           grabCursor={true}
           centeredSlides={true}
-          slidesPerView={3.5} 
-          spaceBetween={-30} 
+          slidesPerView={2.2} // Más grande en móvil
+          spaceBetween={10}
           initialSlide={Math.floor(games.length / 2)}
           coverflowEffect={{
             rotate: 0,
             stretch: 0,
             depth: 150,
-            modifier: 2.5,
+            modifier: 2,
             slideShadows: false,
           }}
           pagination={{ clickable: true }}
           modules={[EffectCoverflow, Pagination]}
-          className="max-w-[850px] pb-8"
+          breakpoints={{
+            
+            320: {
+              slidesPerView: 2.2,
+              spaceBetween: 10,
+            },
+         
+            640: {
+              slidesPerView: 2.8,
+              spaceBetween: 15,
+            },
+         
+            768: {
+              slidesPerView: 3.5,
+              spaceBetween: -30,
+            },
+          }}
+          className="w-full max-w-[850px] pb-8"
         >
           {games.map((game, index) => (
             <SwiperSlide
               key={index}
-              className="w-[160px] sm:w-[180px] md:w-[200px] h-[240px] rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer"
+              className="rounded-2xl overflow-hidden transition-transform duration-300 cursor-pointer"
               onClick={() => handleGameClick(game.title)}
             >
-              <div className="relative w-full h-full">
+              <div className="relative w-full h-56 sm:h-64 md:h-60">
                 <img
                   src={game.img}
                   alt={game.title}
@@ -86,8 +103,10 @@ export default function PopularGames() {
                   </div>
                 )}
                 
-                <div className="absolute left-0 right-0 bottom-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent px-3 py-2">
-                  <p className="text-sm text-white font-semibold truncate text-center">{game.title}</p>
+                <div className="absolute left-0 right-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 py-3">
+                  <p className="text-sm md:text-base text-white font-semibold truncate text-center">
+                    {game.title}
+                  </p>
                 </div>
               </div>
             </SwiperSlide>

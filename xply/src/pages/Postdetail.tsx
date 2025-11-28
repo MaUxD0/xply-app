@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -43,7 +42,8 @@ export default function PostDetail() {
 
   useEffect(() => {
     const computeHidden = () => {
-      setHiddenStart(Math.round(window.innerHeight * 0.65));
+      const isMobile = window.innerWidth < 768;
+      setHiddenStart(Math.round(window.innerHeight * (isMobile ? 0.50 : 0.65)));
     };
     computeHidden();
     window.addEventListener("resize", computeHidden);
@@ -108,12 +108,11 @@ export default function PostDetail() {
 
   return (
     <div className="min-h-screen bg-[#0B0821] text-white relative">
-      {/* MAIN IMAGE */}
-      <div className="relative w-full h-screen overflow-hidden">
+      <div className="relative w-full h-[60vh] md:h-screen overflow-hidden">
         <img
           src={currentPost.images[0]}
           alt="Post"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center"
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0821]/95 via-transparent to-transparent" />
@@ -151,7 +150,7 @@ export default function PostDetail() {
         }}
       >
         <div className="mx-4 mb-4 bg-[#181434]/95 backdrop-blur-xl rounded-t-3xl shadow-lg overflow-hidden">
-          <div className="px-6 pt-6 pb-28 max-h-[55vh] overflow-y-auto">
+          <div className="px-6 pt-6 pb-28 max-h-[60vh] md:max-h-[55vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <span
                 className="text-sm font-semibold"
