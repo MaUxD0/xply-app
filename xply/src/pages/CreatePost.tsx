@@ -112,7 +112,7 @@ export default function CreatePost() {
         ))}
       </div>
 
-      {/* Campo de juego (OPCIONAL) */}
+      {/* Campo de juego */}
       <div className="mb-8">
         <p className="flex items-center gap-2 text-[#FF0099] mb-3">
           <span className="material-symbols-outlined text-lg">sports_esports</span> 

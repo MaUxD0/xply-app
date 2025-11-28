@@ -1,4 +1,4 @@
-// src/slices/authSlice.ts
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { supabase } from '../supabaseClient';
@@ -30,7 +30,7 @@ const initialState: AuthState = {
 export const signup = createAsyncThunk(
   'auth/signup',
   async (data: { email: string; password: string; username: string; avatar?: File }) => {
-    // 1. Registrar usuario en Supabase Auth
+    //  Registrar usuario en Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
@@ -41,7 +41,7 @@ export const signup = createAsyncThunk(
 
     let avatarUrl: string | null = null;
 
-    // 2. Si hay avatar, subirlo PRIMERO
+    //  Si hay avatar, subirlo 
     if (data.avatar) {
       const fileExt = data.avatar.name.split('.').pop();
       const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
@@ -62,7 +62,7 @@ export const signup = createAsyncThunk(
       }
     }
 
-    // 3. Crear perfil en la tabla profiles con el avatar
+    // Crea perfil en la tabla profiles con el avatar
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
@@ -74,7 +74,7 @@ export const signup = createAsyncThunk(
 
     if (profileError) throw profileError;
 
-    // 4. Retornar el usuario CON el avatar_url correcto
+    //  Retornar el usuario CON el avatar_url 
     return {
       id: authData.user.id,
       email: data.email,
@@ -88,7 +88,7 @@ export const signup = createAsyncThunk(
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }) => {
-    // 1. Login con Supabase Auth
+    // Login con Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: credentials.email,
       password: credentials.password,
@@ -97,7 +97,7 @@ export const login = createAsyncThunk(
     if (authError) throw authError;
     if (!authData.user) throw new Error('No user returned from login');
 
-    // 2. Obtener perfil del usuario
+    //  Obtener perfil del usuario
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -127,7 +127,7 @@ export const checkSession = createAsyncThunk('auth/checkSession', async () => {
   
   if (!session?.user) return null;
 
-  // Obtener perfil
+  
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('*')
